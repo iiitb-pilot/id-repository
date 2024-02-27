@@ -58,7 +58,9 @@ public class IdrepositaryUtil {
 			String faceExtractionFormat = bioAttributeFormatterMap.get(CredentialConstants.FACE);
 			String irisExtractionFormat = bioAttributeFormatterMap.get(CredentialConstants.IRIS);
 			List<String> pathsegments = new ArrayList<>();
-			pathsegments.add(credentialServiceRequestDto.getId());
+			String id = Base64.getUrlEncoder().encodeToString(credentialServiceRequestDto.getId().getBytes());
+			LOGGER.info(String.format("Credential RequestId:%s - Encoded ID: %s", credentialServiceRequestDto.getId(), id));
+			pathsegments.add(id);
 			String queryParamName = "type";
 			String queryParamValue = "all";
 			if (StringUtils.isNotEmpty(idType)) {
