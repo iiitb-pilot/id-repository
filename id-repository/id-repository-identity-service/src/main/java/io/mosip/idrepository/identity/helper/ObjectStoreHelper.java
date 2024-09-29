@@ -130,7 +130,7 @@ public class ObjectStoreHelper {
 			long startTime = System.currentTimeMillis();
 			objectStore.putObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName,
 					encryptData);
-			mosipLogger.debug("Time taken for putObject call S3" + (System.currentTimeMillis() - startTime) + " ms");
+			mosipLogger.debug("Time taken for putObject call S3 " + (System.currentTimeMillis() - startTime) + " ms");
 		} catch (AmazonS3Exception | FSAdapterException e) {
 			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR, e);
 		}
