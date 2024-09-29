@@ -123,14 +123,14 @@ public class ObjectStoreHelper {
 	private void putObject(String uinHash, boolean isBio, String fileRefId, byte[] data, String refId)
 			throws IdRepoAppException {
 		try {
-			long startTime = System.currentTimeMillis();
 			String objectName = uinHash + SLASH + (isBio ? BIOMETRICS : DEMOGRAPHICS) + SLASH + fileRefId;
 			long encryptStartTime = System.currentTimeMillis();
 			InputStream encryptData = new ByteArrayInputStream(securityManager.encrypt(data, refId));
-			mosipLogger.debug("Time taken to encrypt before putObject call " + (System.currentTimeMillis() - encryptStartTime) + " ms");
+			mosipLogger.debug("Time taken for putObject call encryption " + (System.currentTimeMillis() - encryptStartTime) + " ms");
+			long startTime = System.currentTimeMillis();
 			objectStore.putObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName,
 					encryptData);
-			mosipLogger.debug("Time taken for putObject call " + (System.currentTimeMillis() - startTime) + " ms");
+			mosipLogger.debug("Time taken for putObject call S3" + (System.currentTimeMillis() - startTime) + " ms");
 		} catch (AmazonS3Exception | FSAdapterException e) {
 			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR, e);
 		}
