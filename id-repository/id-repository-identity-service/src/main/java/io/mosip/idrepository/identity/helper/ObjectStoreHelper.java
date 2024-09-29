@@ -108,7 +108,7 @@ public class ObjectStoreHelper {
 			long startTime = System.currentTimeMillis();
 			String objectName = uinHash + SLASH + BIOMETRICS + SLASH + fileRefId;
 			objectStore.deleteObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
-			mosipLogger.debug("Time taken for deleteObject call" + (System.currentTimeMillis() - startTime) + " ms");
+			mosipLogger.debug("Time taken for deleteObject call " + (System.currentTimeMillis() - startTime) + " ms");
 		}
 	}
 
@@ -116,7 +116,7 @@ public class ObjectStoreHelper {
 		long startTime = System.currentTimeMillis();
 		String objectName = uinHash + SLASH + (isBio ? BIOMETRICS : DEMOGRAPHICS) + SLASH + fileRefId;
 		boolean isExist = objectStore.exists(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
-		mosipLogger.debug("Time taken for exists call" + (System.currentTimeMillis() - startTime) + " ms");
+		mosipLogger.debug("Time taken for exists call " + (System.currentTimeMillis() - startTime) + " ms");
 		return isExist;
 	}
 
@@ -127,7 +127,7 @@ public class ObjectStoreHelper {
 			String objectName = uinHash + SLASH + (isBio ? BIOMETRICS : DEMOGRAPHICS) + SLASH + fileRefId;
 			objectStore.putObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName,
 					new ByteArrayInputStream(securityManager.encrypt(data, refId)));
-			mosipLogger.debug("Time taken for putObject call" + (System.currentTimeMillis() - startTime) + " ms");
+			mosipLogger.debug("Time taken for putObject call " + (System.currentTimeMillis() - startTime) + " ms");
 		} catch (AmazonS3Exception | FSAdapterException e) {
 			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR, e);
 		}
@@ -138,7 +138,7 @@ public class ObjectStoreHelper {
 			long startTime = System.currentTimeMillis();
 			String objectName = uinHash + SLASH + (isBio ? BIOMETRICS : DEMOGRAPHICS) + SLASH + fileRefId;
 			InputStream osObject =  objectStore.getObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
-			mosipLogger.debug("Time taken for getObject call" + (System.currentTimeMillis() - startTime) + " ms");
+			mosipLogger.debug("Time taken for getObject call " + (System.currentTimeMillis() - startTime) + " ms");
 			return securityManager.decrypt(IOUtils.toByteArray(osObject), refId);
 		} catch (AmazonS3Exception | FSAdapterException | IOException e) {
 			throw new IdRepoAppException(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR);

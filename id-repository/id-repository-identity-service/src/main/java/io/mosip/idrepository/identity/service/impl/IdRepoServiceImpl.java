@@ -334,8 +334,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				if (bioAttributes.contains(doc.getCategory())) {
 					addBiometricDocuments(uinHash, uinRefId, bioList, doc, docType, isDraft, index);
 					anonymousProfileHelper.setNewCbeff(doc.getValue());
-				} else {
-					addDemographicDocuments(uinHash, uinRefId, docList, doc, docType, isDraft);
+//				} else {
+//					addDemographicDocuments(uinHash, uinRefId, docList, doc, docType, isDraft);
 				}
 			} catch (IdRepoAppException e) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY, e.getMessage());
