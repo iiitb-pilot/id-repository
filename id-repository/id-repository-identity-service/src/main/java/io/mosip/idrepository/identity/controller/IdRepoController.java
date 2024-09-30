@@ -185,6 +185,7 @@ public class IdRepoController {
 		String regId = Optional.ofNullable(request.getRequest()).map(req -> String.valueOf(req.getRegistrationId()))
 				.orElse("null");
 		try {
+			long uinValidateStartTime = System.currentTimeMillis();
 			String uin = getUin(request.getRequest());
 			validator.validateId(request.getId(), CREATE);
 			DataValidationUtil.validate(errors);
@@ -193,6 +194,8 @@ public class IdRepoController {
 				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
 						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
 			}
+			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY,
+					"Total time taken to validate UIN -  (" + (System.currentTimeMillis() - uinValidateStartTime) + "ms)");
 			return new ResponseEntity<>(idRepoService.addIdentity(request, uin), HttpStatus.OK);
 		} catch (IdRepoDataValidationException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE,

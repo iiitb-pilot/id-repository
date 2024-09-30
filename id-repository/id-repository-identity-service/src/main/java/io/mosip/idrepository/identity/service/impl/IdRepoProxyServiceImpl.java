@@ -193,6 +193,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	public IdResponseDTO addIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
 		try {
 			String uinHash = retrieveUinHash(uin);
+			long uinExistStartTime = System.currentTimeMillis();
 			if (uinRepo.existsByUinHash(uinHash)
 					|| uinDraftRepo.existsByRegId(request.getRequest().getRegistrationId())
 					|| uinHistoryRepo.existsByRegId(request.getRequest().getRegistrationId())) {
@@ -200,7 +201,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 						RECORD_EXISTS.getErrorMessage());
 				throw new IdRepoAppException(RECORD_EXISTS);
 			}
-
+			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
+					"Total time taken to do UIN exist check - " + uinHash + " (" + (System.currentTimeMillis() - uinExistStartTime) + "ms)");
 			Uin uinEntity = service.addIdentity(request, uin);
 
 			notify(uin, false, request.getRequest().getRegistrationId());
