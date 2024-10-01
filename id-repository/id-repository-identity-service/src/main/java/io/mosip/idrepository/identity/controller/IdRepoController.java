@@ -296,8 +296,11 @@ public class IdRepoController {
 			extractionFormats.remove(null);
 			validator.validateTypeAndExtractionFormats(type, extractionFormats);
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, RETRIEVE_IDENTITY_BYID, "IdRepo retrieveIdentityById request:" + requestById.toString());
+			long retrieveStartTime = System.currentTimeMillis();
 			IdResponseDTO responseDTO = idRepoService.retrieveIdentity(requestById.getId(),
 					Objects.isNull(requestById.getIdType()) ? getIdType(requestById.getId()) : validator.validateIdType(requestById.getIdType()), type, extractionFormats);
+			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, RETRIEVE_IDENTITY_BYID,
+					"IdVID API - Time taken to complete controller-retrieveIdentity " + (System.currentTimeMillis() - retrieveStartTime) + " (ms)");
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, RETRIEVE_IDENTITY_BYID, "IdRepo retrieveIdentityById response:" + responseDTO.toString());
 			return new ResponseEntity<>(responseDTO, HttpStatus.OK);
 		} catch (IdRepoAppException e) {

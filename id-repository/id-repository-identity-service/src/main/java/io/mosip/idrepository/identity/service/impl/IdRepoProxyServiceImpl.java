@@ -312,12 +312,21 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	private IdResponseDTO retrieveIdentityByUinHash(String type, String uinHash, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
 		List<DocumentsDTO> documents = new ArrayList<>();
+		long startTime = System.currentTimeMillis();
 		Uin uinObject = service.retrieveIdentity(uinHash, IdType.UIN, type, null);
+		mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
+				"IdVID API - Time taken to complete service-retrieveIdentity " + (System.currentTimeMillis() - startTime) + " (ms)");
 		if (StringUtils.containsIgnoreCase(type, BIO) || StringUtils.containsIgnoreCase(type, ALL)) {
+			startTime = System.currentTimeMillis();
 			getFiles(uinObject, documents, extractionFormats, BIOMETRICS);
+			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
+					"IdVID API - Time taken to complete bio-getFiles " + (System.currentTimeMillis() - startTime) + " (ms)");
 		}
 		if (StringUtils.containsIgnoreCase(type, DEMO) || StringUtils.containsIgnoreCase(type, ALL)) {
+			startTime = System.currentTimeMillis();
 			getFiles(uinObject, documents, null, DEMOGRAPHICS);
+			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
+					"IdVID API - Time taken to complete demo-getFiles " + (System.currentTimeMillis() - startTime) + " (ms)");
 		}
 		return constructIdResponse(this.id.get(READ), uinObject, documents);
 	}
@@ -765,7 +774,10 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			throws IdRepoAppException {
 		try {
 			String handleHash = idRepoServiceHelper.getHandleHash(handle);
+			long findHandleDBStartTime = System.currentTimeMillis();
 			Handle entity = handleRepo.findByHandleHash(handleHash);
+			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
+					"IdVID API - Time taken to execute handle find query " + (System.currentTimeMillis() - findHandleDBStartTime) + " (ms)");
 			if (Objects.nonNull(entity)) {
 				return retrieveIdentityByUinHash(type, entity.getUinHash(), extractionFormats);
 			} else {
