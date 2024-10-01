@@ -175,9 +175,12 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 			Map<String, String> bioAttributeFormatterMap = getFormatters(policyDetailResponseDto,
 					credentialServiceRequestDto.getIssuer(), credentialServiceRequestDto.getRequestId());
+			long identityStartTime = System.currentTimeMillis();
 			IdResponseDTO idResponseDto = idrepositaryUtil.getDataById(credentialServiceRequestDto,
 					bioAttributeFormatterMap);
-
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+					credentialServiceRequestDto.getRequestId(),
+					"Time taken to complete idvid API call " + (System.currentTimeMillis() - identityStartTime) + " (ms)");
 
 			credentialProvider = getProvider(credentialServiceRequestDto.getCredentialType());
 
