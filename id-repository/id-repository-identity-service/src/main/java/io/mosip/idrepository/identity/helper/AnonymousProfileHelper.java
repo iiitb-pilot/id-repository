@@ -35,6 +35,8 @@ import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.UUIDUtils;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
+
 @Component
 @Transactional
 public class AnonymousProfileHelper {
@@ -101,7 +103,7 @@ public class AnonymousProfileHelper {
 				if (Objects.nonNull(newCbeff))
 					newDocList = List.of(new DocumentsDTO(IdentityIssuanceProfileBuilder.getIdentityMapping()
 							.getIdentity().getIndividualBiometrics().getValue(), newCbeff));
-				String id = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, regId).toString();
+				String id = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, regId + SPLITTER + DateUtils.getUTCCurrentDateTime()).toString();
 				IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder()
 						.setFilterLanguage(EnvUtil.getAnonymousProfileFilterLanguage())
 						.setProcessName(Objects.isNull(oldUinData) ? "New" : "Update").setOldIdentity(oldUinData)
