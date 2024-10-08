@@ -104,10 +104,14 @@ public class AnonymousProfileHelper {
 					newDocList = List.of(new DocumentsDTO(IdentityIssuanceProfileBuilder.getIdentityMapping()
 							.getIdentity().getIndividualBiometrics().getValue(), newCbeff));
 				String id = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, regId + SPLITTER + DateUtils.getUTCCurrentDateTime()).toString();
+				mosipLogger.debug(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper", "buildAndsaveProfile",
+						"Before Anonymous profile primary key " + id + " for regId " + regId);
 				IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder()
 						.setFilterLanguage(EnvUtil.getAnonymousProfileFilterLanguage())
 						.setProcessName(Objects.isNull(oldUinData) ? "New" : "Update").setOldIdentity(oldUinData)
 						.setOldDocuments(oldDocList).setNewIdentity(newUinData).setNewDocuments(newDocList).build();
+				mosipLogger.debug(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper", "buildAndsaveProfile",
+						"After Anonymous profile primary key " + id + " for regId " + regId);
 				AnonymousProfileEntity anonymousProfile = AnonymousProfileEntity.builder().id(id)
 						.profile(mapper.writeValueAsString(profile)).createdBy(IdRepoSecurityManager.getUser())
 						.crDTimes(DateUtils.getUTCCurrentDateTime()).build();
