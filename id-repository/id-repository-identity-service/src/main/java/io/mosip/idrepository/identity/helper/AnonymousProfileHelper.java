@@ -103,7 +103,8 @@ public class AnonymousProfileHelper {
 				if (Objects.nonNull(newCbeff))
 					newDocList = List.of(new DocumentsDTO(IdentityIssuanceProfileBuilder.getIdentityMapping()
 							.getIdentity().getIndividualBiometrics().getValue(), newCbeff));
-				String id = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, regId + SPLITTER + DateUtils.getUTCCurrentDateTime()).toString();
+//				String id = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, regId + SPLITTER + DateUtils.getUTCCurrentDateTime()).toString();
+				String id = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, regId).toString();
 				mosipLogger.debug(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper", "buildAndsaveProfile",
 						"Before Anonymous profile primary key " + id + " for regId " + regId);
 				IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder()
