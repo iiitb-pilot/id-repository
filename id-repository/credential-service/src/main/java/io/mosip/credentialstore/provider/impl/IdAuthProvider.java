@@ -104,6 +104,8 @@ public class IdAuthProvider extends CredentialProvider {
 			
 			List<ZkDataAttribute> demoZkDataAttributes=new ArrayList<>();
             Map<String, Object> formattedMap=new HashMap<>();
+			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"sharableAttributeMap - " + mapper.writeValueAsString(sharableAttributeMap));
 			for (Map.Entry<AllowedKycDto, Object> entry : sharableAttributeMap.entrySet()) {
 				AllowedKycDto allowedKycDto = entry.getKey();
 				String attributeName = allowedKycDto.getAttributeName();
@@ -114,7 +116,7 @@ public class IdAuthProvider extends CredentialProvider {
 				}else {
 					valueStr=mapper.writeValueAsString(value);
 				}
-				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+				LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 						"Attribute name (" + attributeName + ") value - " + valueStr);
 				if (allowedKycDto.isEncrypted()) {
 					ZkDataAttribute zkDataAttribute=new ZkDataAttribute();
@@ -223,7 +225,7 @@ public class IdAuthProvider extends CredentialProvider {
 	 */
 	private List<ZkDataAttribute> splitCbeff(String individualBiometricsValue) throws Exception {
 		List<ZkDataAttribute> zkDataAttributes = new ArrayList<>();
-		LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), "individualBiometricsValue",  CryptoUtil.decodeURLSafeBase64(individualBiometricsValue));
+		LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), "individualBiometricsValue",  individualBiometricsValue);
 		List<BIR> birList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeURLSafeBase64(individualBiometricsValue));
 		LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), "birList",  (new ObjectMapper()).writeValueAsString(birList));
 		for (BIR bir : birList) {
