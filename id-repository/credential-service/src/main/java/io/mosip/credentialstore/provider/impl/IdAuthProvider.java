@@ -223,7 +223,9 @@ public class IdAuthProvider extends CredentialProvider {
 	 */
 	private List<ZkDataAttribute> splitCbeff(String individualBiometricsValue) throws Exception {
 		List<ZkDataAttribute> zkDataAttributes = new ArrayList<>();
+		LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), "individualBiometricsValue",  CryptoUtil.decodeURLSafeBase64(individualBiometricsValue));
 		List<BIR> birList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeURLSafeBase64(individualBiometricsValue));
+		LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), "birList",  (new ObjectMapper()).writeValueAsString(birList));
 		for (BIR bir : birList) {
 			List<BIR> birs = new ArrayList<>();
 			birs.add(bir);
