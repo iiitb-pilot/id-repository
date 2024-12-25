@@ -104,7 +104,10 @@ public class IdRepoDraftController {
 			@RequestParam(name = UIN, required = false) @Nullable String uin)
 			throws IdRepoAppException {
 		try {
-			return new ResponseEntity<>(draftService.createDraft(registrationId, uin), HttpStatus.OK);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "createDraft", "Entering Create Method");
+			IdResponseDTO idResponseDTO = draftService.createDraft(registrationId, uin);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "createDraft", "Entering Create Method");
+			return new ResponseEntity<>(idResponseDTO, HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_DRAFT_REQUEST_RESPONSE,
 					registrationId, IdType.ID, e);
@@ -261,9 +264,11 @@ public class IdRepoDraftController {
 			@RequestParam(name = IRIS_EXTRACTION_FORMAT, required = false) @Nullable String irisExtractionFormat,
 			@RequestParam(name = FACE_EXTRACTION_FORMAT, required = false) @Nullable String faceExtractionFormat) throws IdRepoAppException {
 		try {
-			return new ResponseEntity<>(draftService.extractBiometrics(registrationId,
-					buildExtractionFormatMap(fingerExtractionFormat, irisExtractionFormat, faceExtractionFormat)),
-					HttpStatus.OK);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "extractBiometrics", "Entering extractBiometrics Method");
+			IdResponseDTO idResponseDTO = draftService.extractBiometrics(registrationId,
+					buildExtractionFormatMap(fingerExtractionFormat, irisExtractionFormat, faceExtractionFormat));
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "extractBiometrics", "Existing extractBiometrics Method");
+			return new ResponseEntity<>(idResponseDTO, HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.EXTRACT_BIOMETRICS_DRAFT_REQUEST_RESPONSE, registrationId,
 					IdType.ID, e);

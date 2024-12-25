@@ -430,7 +430,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 					if (Objects.nonNull(data)) {
 						if (Objects.nonNull(extractionFormats) && !extractionFormats.isEmpty()) {
 							byte[] extractedData = getBiometricsForRequestedFormats(uinHash, bio.getBioFileId(),
-									extractionFormats, data);
+									extractionFormats, data, uinObject.getRegId());
 							if (Objects.nonNull(extractedData)) {
 								documents.add(new DocumentsDTO(bio.getBiometricFileType(),
 										CryptoUtil.encodeToURLSafeBase64(extractedData)));
@@ -457,14 +457,16 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	}
 
 	protected byte[] getBiometricsForRequestedFormats(String uinHash, String fileName,
-													  Map<String, String> extractionFormats, byte[] originalData) throws IdRepoAppException {
+													  Map<String, String> extractionFormats, byte[] originalData, String regid) throws IdRepoAppException {
 		try {
 			List<BIR> originalBirs = cbeffUtil.getBIRDataFromXML(originalData);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats", "Getting CBEFF Data using Original Data RID : " + regid);
 			List<BIR> finalBirs = new ArrayList<>();
 
 			List<CompletableFuture<List<BIR>>> extractionFutures = new ArrayList<>();
 
 			for (BiometricType modality : SUPPORTED_MODALITIES) {
+				mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats", "Preparing Extraction for Modality : " + modality.value() + " + RID : " + regid);
 				List<BIR> birTypesForModality = originalBirs.stream()
 						.filter(bir -> bir.getBdbInfo().getType().get(0).value().equalsIgnoreCase(modality.value()))
 						.collect(Collectors.toList());
@@ -476,6 +478,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 					Entry<String, String> format = extractionFormatForModality.get();
 					CompletableFuture<List<BIR>> extractTemplateFuture = biometricExtractionService.extractTemplate(
 							uinHash, fileName, format.getKey(), format.getValue(), birTypesForModality);
+					mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats", "BIOSDK Api Call for Modality : " + modality.value() + " + RID : " + regid);
 					extractionFutures.add(extractTemplateFuture);
 
 				} else {

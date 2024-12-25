@@ -491,7 +491,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				String uinHash = draft.getUinHash().split(SPLITTER)[1];
 				for (UinBiometricDraft uinBiometricDraft : draft.getBiometrics()) {
 					documents.add(new DocumentsDTO(uinBiometricDraft.getBiometricFileType(), CryptoUtil.encodeToURLSafeBase64(
-							extractAndGetCombinedCbeff(uinHash, uinBiometricDraft.getBioFileId(), extractionFormats))));
+							extractAndGetCombinedCbeff(uinHash, uinBiometricDraft.getBioFileId(), extractionFormats, regId))));
 				}
 				for (UinDocumentDraft uinDocumentDraft : draft.getDocuments()) {
 					documents.add(new DocumentsDTO(uinDocumentDraft.getDoccatCode(), CryptoUtil
@@ -514,9 +514,12 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			throws IdRepoAppException {
 		if (!extractionFormats.isEmpty())
 			try {
+				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "Entering extractBiometrics method in IdRepoDraftServiceImpl RID : " + registrationId);
 				Optional<UinDraft> draftOpt = uinDraftRepo.findByRegId(registrationId);
+				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "Find Idrepo Details using RID : " + registrationId);
 				if (draftOpt.isPresent()) {
 					extractBiometricsDraft(extractionFormats, draftOpt.get());
+					idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "Biometrics Extraction Complete RID : " + registrationId);
 				} else {
 					idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
 							DRAFT_RECORD_NOT_FOUND);
@@ -536,7 +539,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			String uinHash = draft.getUinHash().split("_")[1];
 			for (UinBiometricDraft bioDraft : draft.getBiometrics()) {
 				deleteExistingExtractedBioData(extractionFormats, uinHash, bioDraft);
-				extractAndGetCombinedCbeff(uinHash, bioDraft.getBioFileId(), extractionFormats);
+				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "Deleting Existing Biometrics Extraction RID : " + draft.getRegId());
+				extractAndGetCombinedCbeff(uinHash, bioDraft.getBioFileId(), extractionFormats, draft.getRegId());
 			}
 		} catch (Exception e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
@@ -550,10 +554,10 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 						buildExtractionFileName(extractionFormat, bioDraft.getBioFileId())));
 	}
 
-	private byte[] extractAndGetCombinedCbeff(String uinHash, String bioFileId, Map<String, String> extractionFormats)
+	private byte[] extractAndGetCombinedCbeff(String uinHash, String bioFileId, Map<String, String> extractionFormats, String regId)
 			throws IdRepoAppException {
 		return proxyService.getBiometricsForRequestedFormats(uinHash, bioFileId, extractionFormats,
-				super.objectStoreHelper.getBiometricObject(uinHash, bioFileId));
+				super.objectStoreHelper.getBiometricObject(uinHash, bioFileId), regId);
 	}
 
 	private String buildExtractionFileName(Entry<String, String> extractionFormat, String bioFileId) {
