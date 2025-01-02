@@ -517,8 +517,9 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			try {
 				Long startTime = System.nanoTime();
 				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "Entering extractBiometrics method in IdRepoDraftServiceImpl RID : " + registrationId);
+				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "Before Find Idrepo Details using RID : " + registrationId + " " + TimeUnit.MILLISECONDS.convert(System.nanoTime()-startTime, TimeUnit.NANOSECONDS));
 				Optional<UinDraft> draftOpt = uinDraftRepo.findByRegId(registrationId);
-				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "Find Idrepo Details using RID : " + registrationId + " " + TimeUnit.MILLISECONDS.convert(System.nanoTime()-startTime, TimeUnit.NANOSECONDS));
+				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "After Find Idrepo Details using RID : " + registrationId + " " + TimeUnit.MILLISECONDS.convert(System.nanoTime()-startTime, TimeUnit.NANOSECONDS));
 				if (draftOpt.isPresent()) {
 					extractBiometricsDraft(extractionFormats, draftOpt.get(), startTime);
 					idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "Biometrics Extraction Complete RID : " + registrationId + " " + TimeUnit.MILLISECONDS.convert(System.nanoTime()-startTime, TimeUnit.NANOSECONDS));
