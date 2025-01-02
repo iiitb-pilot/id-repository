@@ -560,8 +560,10 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 
 	private byte[] extractAndGetCombinedCbeff(String uinHash, String bioFileId, Map<String, String> extractionFormats, String regId, Long startTime)
 			throws IdRepoAppException {
+		byte[] originalData = super.objectStoreHelper.getBiometricObject(uinHash, bioFileId);
+		idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "Fetching Biometrics from Object Store RID : " + regId + " " + TimeUnit.MILLISECONDS.convert(System.nanoTime()-startTime, TimeUnit.NANOSECONDS));
 		return proxyService.getBiometricsForRequestedFormats(uinHash, bioFileId, extractionFormats,
-				super.objectStoreHelper.getBiometricObject(uinHash, bioFileId), regId, startTime);
+				originalData, regId, startTime);
 	}
 
 	private String buildExtractionFileName(Entry<String, String> extractionFormat, String bioFileId) {

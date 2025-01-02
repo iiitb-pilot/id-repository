@@ -460,8 +460,9 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	protected byte[] getBiometricsForRequestedFormats(String uinHash, String fileName,
 													  Map<String, String> extractionFormats, byte[] originalData, String regid, Long startTime) throws IdRepoAppException {
 		try {
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats", "Before CBEFF Data using Original Data RID : " + regid + " " + TimeUnit.MILLISECONDS.convert(System.nanoTime()-startTime, TimeUnit.NANOSECONDS));
 			List<BIR> originalBirs = cbeffUtil.getBIRDataFromXML(originalData);
-			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats", "Getting CBEFF Data using Original Data RID : " + regid + " " + TimeUnit.MILLISECONDS.convert(System.nanoTime()-startTime, TimeUnit.NANOSECONDS));
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats", "After CBEFF Data using Original Data RID : " + regid + " " + TimeUnit.MILLISECONDS.convert(System.nanoTime()-startTime, TimeUnit.NANOSECONDS));
 			List<BIR> finalBirs = new ArrayList<>();
 
 			List<CompletableFuture<List<BIR>>> extractionFutures = new ArrayList<>();
