@@ -68,6 +68,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
@@ -430,7 +431,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 					if (Objects.nonNull(data)) {
 						if (Objects.nonNull(extractionFormats) && !extractionFormats.isEmpty()) {
 							byte[] extractedData = getBiometricsForRequestedFormats(uinHash, bio.getBioFileId(),
-									extractionFormats, data, uinObject.getRegId());
+									extractionFormats, data, uinObject.getRegId(), System.nanoTime());
 							if (Objects.nonNull(extractedData)) {
 								documents.add(new DocumentsDTO(bio.getBiometricFileType(),
 										CryptoUtil.encodeToURLSafeBase64(extractedData)));
@@ -457,16 +458,16 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	}
 
 	protected byte[] getBiometricsForRequestedFormats(String uinHash, String fileName,
-													  Map<String, String> extractionFormats, byte[] originalData, String regid) throws IdRepoAppException {
+													  Map<String, String> extractionFormats, byte[] originalData, String regid, Long startTime) throws IdRepoAppException {
 		try {
 			List<BIR> originalBirs = cbeffUtil.getBIRDataFromXML(originalData);
-			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats", "Getting CBEFF Data using Original Data RID : " + regid);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats", "Getting CBEFF Data using Original Data RID : " + regid + " " + TimeUnit.MILLISECONDS.convert(System.nanoTime()-startTime, TimeUnit.NANOSECONDS));
 			List<BIR> finalBirs = new ArrayList<>();
 
 			List<CompletableFuture<List<BIR>>> extractionFutures = new ArrayList<>();
 
 			for (BiometricType modality : SUPPORTED_MODALITIES) {
-				mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats", "Preparing Extraction for Modality : " + modality.value() + " + RID : " + regid);
+				mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats", "Preparing Extraction for Modality : " + modality.value() + " + RID : " + regid + " " + TimeUnit.MILLISECONDS.convert(System.nanoTime()-startTime, TimeUnit.NANOSECONDS));
 				List<BIR> birTypesForModality = originalBirs.stream()
 						.filter(bir -> bir.getBdbInfo().getType().get(0).value().equalsIgnoreCase(modality.value()))
 						.collect(Collectors.toList());
@@ -478,7 +479,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 					Entry<String, String> format = extractionFormatForModality.get();
 					CompletableFuture<List<BIR>> extractTemplateFuture = biometricExtractionService.extractTemplate(
 							uinHash, fileName, format.getKey(), format.getValue(), birTypesForModality);
-					mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats", "BIOSDK Api Call for Modality : " + modality.value() + " + RID : " + regid);
+					mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats", "BIOSDK Api Call for Modality : " + modality.value() + " + RID : " + regid + " " + TimeUnit.MILLISECONDS.convert(System.nanoTime()-startTime, TimeUnit.NANOSECONDS));
 					extractionFutures.add(extractTemplateFuture);
 
 				} else {

@@ -74,6 +74,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -491,7 +492,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				String uinHash = draft.getUinHash().split(SPLITTER)[1];
 				for (UinBiometricDraft uinBiometricDraft : draft.getBiometrics()) {
 					documents.add(new DocumentsDTO(uinBiometricDraft.getBiometricFileType(), CryptoUtil.encodeToURLSafeBase64(
-							extractAndGetCombinedCbeff(uinHash, uinBiometricDraft.getBioFileId(), extractionFormats, regId))));
+							extractAndGetCombinedCbeff(uinHash, uinBiometricDraft.getBioFileId(), extractionFormats, regId, System.nanoTime()))));
 				}
 				for (UinDocumentDraft uinDocumentDraft : draft.getDocuments()) {
 					documents.add(new DocumentsDTO(uinDocumentDraft.getDoccatCode(), CryptoUtil
@@ -514,12 +515,13 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			throws IdRepoAppException {
 		if (!extractionFormats.isEmpty())
 			try {
+				Long startTime = System.nanoTime();
 				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "Entering extractBiometrics method in IdRepoDraftServiceImpl RID : " + registrationId);
 				Optional<UinDraft> draftOpt = uinDraftRepo.findByRegId(registrationId);
-				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "Find Idrepo Details using RID : " + registrationId);
+				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "Find Idrepo Details using RID : " + registrationId + " " + TimeUnit.MILLISECONDS.convert(System.nanoTime()-startTime, TimeUnit.NANOSECONDS));
 				if (draftOpt.isPresent()) {
-					extractBiometricsDraft(extractionFormats, draftOpt.get());
-					idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "Biometrics Extraction Complete RID : " + registrationId);
+					extractBiometricsDraft(extractionFormats, draftOpt.get(), startTime);
+					idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "Biometrics Extraction Complete RID : " + registrationId + " " + TimeUnit.MILLISECONDS.convert(System.nanoTime()-startTime, TimeUnit.NANOSECONDS));
 				} else {
 					idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
 							DRAFT_RECORD_NOT_FOUND);
@@ -533,14 +535,15 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		return constructIdResponse(null, DRAFTED, null, null);
 	}
 
-	private void extractBiometricsDraft(Map<String, String> extractionFormats, UinDraft draft)
+	private void extractBiometricsDraft(Map<String, String> extractionFormats, UinDraft draft, Long startTime)
 			throws IdRepoAppException {
 		try {
 			String uinHash = draft.getUinHash().split("_")[1];
 			for (UinBiometricDraft bioDraft : draft.getBiometrics()) {
 				deleteExistingExtractedBioData(extractionFormats, uinHash, bioDraft);
-				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "Deleting Existing Biometrics Extraction RID : " + draft.getRegId());
-				extractAndGetCombinedCbeff(uinHash, bioDraft.getBioFileId(), extractionFormats, draft.getRegId());
+				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "Deleting Existing Biometrics Extraction RID : " + draft.getRegId() + " " + TimeUnit.MILLISECONDS.convert(System.nanoTime()-startTime, TimeUnit.NANOSECONDS));
+				extractAndGetCombinedCbeff(uinHash, bioDraft.getBioFileId(), extractionFormats, draft.getRegId(), startTime);
+				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "Creating New CBEFF File for Extracted Template RID : " + draft.getRegId() + " " + TimeUnit.MILLISECONDS.convert(System.nanoTime()-startTime, TimeUnit.NANOSECONDS));
 			}
 		} catch (Exception e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
@@ -554,10 +557,10 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 						buildExtractionFileName(extractionFormat, bioDraft.getBioFileId())));
 	}
 
-	private byte[] extractAndGetCombinedCbeff(String uinHash, String bioFileId, Map<String, String> extractionFormats, String regId)
+	private byte[] extractAndGetCombinedCbeff(String uinHash, String bioFileId, Map<String, String> extractionFormats, String regId, Long startTime)
 			throws IdRepoAppException {
 		return proxyService.getBiometricsForRequestedFormats(uinHash, bioFileId, extractionFormats,
-				super.objectStoreHelper.getBiometricObject(uinHash, bioFileId), regId);
+				super.objectStoreHelper.getBiometricObject(uinHash, bioFileId), regId, startTime);
 	}
 
 	private String buildExtractionFileName(Entry<String, String> extractionFormat, String bioFileId) {
