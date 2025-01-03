@@ -489,13 +489,13 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 					finalBirs.addAll(birTypesForModality);
 				}
 			}
-
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats", "Entering Final BIR Filter RID : " + regid + " " + TimeUnit.MILLISECONDS.convert(System.nanoTime()-startTime, TimeUnit.NANOSECONDS));
 			CompletableFuture.allOf(extractionFutures.toArray(new CompletableFuture<?>[extractionFutures.size()]))
 					.join();
 			for (CompletableFuture<List<BIR>> future : extractionFutures) {
 				finalBirs.addAll(future.get());
 			}
-
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats", "Entering Create CBEFF File RID : " + regid + " " + TimeUnit.MILLISECONDS.convert(System.nanoTime()-startTime, TimeUnit.NANOSECONDS));
 			return cbeffUtil.createXML(finalBirs);
 		} catch (IdRepoAppUncheckedException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
