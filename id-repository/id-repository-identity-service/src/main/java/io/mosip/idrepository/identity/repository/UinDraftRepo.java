@@ -31,8 +31,8 @@ public interface UinDraftRepo extends JpaRepository<UinDraft, String> {
 	 * @param regId the reg id
 	 * @return true, if successful
 	 */
-	//@Query(value = "SELECT EXISTS(SELECT 1 FROM uin_draft u WHERE u.reg_id= :regId)", nativeQuery = true)
-	boolean existsByRegId(String regId);
+	@Query(value = "SELECT EXISTS(SELECT 1 FROM uin_draft u WHERE u.reg_id= :regId)", nativeQuery = true)
+	boolean existsByRegId(@Param("regId") String regId);
 
 	/**
 	 * Gets the status by uin.
