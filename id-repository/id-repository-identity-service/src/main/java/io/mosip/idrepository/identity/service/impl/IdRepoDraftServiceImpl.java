@@ -506,7 +506,12 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	@Override
 	public boolean hasDraft(String regId) throws IdRepoAppException {
 		try {
-			return uinDraftRepo.existsByRegId(regId);
+			Long startTime = System.currentTimeMillis();
+			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "hasDraft", "Before Search Record for RID : " + regId + " " + (System.currentTimeMillis()-startTime) + " ms");
+			boolean val = uinDraftRepo.existsByRegId(regId);
+			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "hasDraft", "After Search Record for RID : " + regId + " " + (System.currentTimeMillis()-startTime) + " ms");
+			return val;
+
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "hasDraft", e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
