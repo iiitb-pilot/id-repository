@@ -372,7 +372,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			String draftVid = null;
 			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(regId);
 			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
-					"UIN Draft Data " + regId + " " + objectMapper.writeValueAsString(uinDraft.get()));
+					"UIN Draft Data for RID " + regId + " " + objectMapper.writeValueAsString(uinDraft.get()));
 			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
 					"Fetch IDrepo Draft Record for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 			if (uinDraft.isEmpty()) {
