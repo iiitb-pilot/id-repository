@@ -358,10 +358,17 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 
 	@Override
 	public IdResponseDTO publishDraft(String regId) throws IdRepoAppException {
+		Long startTime = System.currentTimeMillis();
+		idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+				"Entering Publish Method for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 		anonymousProfileHelper.setRegId(regId);
+		idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+				"Set RID in anonymousProfileHelper Method for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 		try {
 			String draftVid = null;
 			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(regId);
+			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+					"Fetch IDrepo Draft Record for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 			if (uinDraft.isEmpty()) {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
 						DRAFT_RECORD_NOT_FOUND);
@@ -374,20 +381,44 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 						&& !draft.getBiometrics().isEmpty()
 						? draft.getBiometrics().get(draft.getBiometrics().size() - 1).getBioFileId()
 								: null);
+				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+						"Setting New CBEFF for anonymousProfileHelper.setNewCbeff for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 				IdRequestDTO idRequest = buildRequest(regId, draft);
+				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+						"Building Request for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 				validateRequest(idRequest.getRequest());
+				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+						"Validating Request for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 				String uin = decryptUin(draft.getUin(), draft.getUinHash());
+				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+						"Decrypt UIN for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 				final Uin uinObject;
 				if (uinRepo.existsByUinHash(draft.getUinHash())) {
+					idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+							"UIN Already Exist for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 					uinObject = super.updateIdentity(idRequest, uin);
+					idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+							"Update Identity for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 				} else {
 					draftVid = vidDraftHelper.generateDraftVid(uin);
+					idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+							"Generate Draft VID for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 					uinObject = super.addIdentity(idRequest, uin);
+					idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+							"Add Identity for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 					vidDraftHelper.activateDraftVid(draftVid);
+					idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+							"Activate VID for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 				}
 				anonymousProfileHelper.buildAndsaveProfile(true);
+				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+						"Saving Anonymous Profile for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 				publishDocuments(draft, uinObject);
+				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+						"Publish Document for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 				this.discardDraft(regId);
+				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+						"Discard Draft for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 				return constructIdResponse(null, uinObject.getStatusCode(), null, draftVid);
 			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
