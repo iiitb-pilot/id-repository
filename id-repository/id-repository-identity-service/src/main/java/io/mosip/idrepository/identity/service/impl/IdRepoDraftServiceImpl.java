@@ -509,7 +509,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			Long startTime = System.currentTimeMillis();
 			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "hasDraft", "Before Search Record for RID : " + regId + " " + (System.currentTimeMillis()-startTime) + " ms");
 			boolean val = uinDraftRepo.existsByRegId(regId);
-			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "hasDraft", "After Search Record for RID : " + regId + " " + (System.currentTimeMillis()-startTime) + " ms");
+			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "hasDraft", "After Search Record for RID : " + regId + " " + (System.currentTimeMillis()-startTime) + " ms Value : " + val);
 			return val;
 
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
