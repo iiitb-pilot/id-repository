@@ -151,7 +151,10 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	
 	@Value("${mosip.idrepo.create-identity.enable-force-merge:false}")
 	private boolean isForceMergeEnabled;
-	
+
+	ObjectMapper objectMapper = new ObjectMapper();
+
+
 	@Override
 	public IdResponseDTO createDraft(String registrationId, String uin) throws IdRepoAppException {
 		try {
@@ -359,6 +362,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	@Override
 	public IdResponseDTO publishDraft(String regId) throws IdRepoAppException {
 		Long startTime = System.currentTimeMillis();
+
 		idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
 				"Entering Publish Method for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 		anonymousProfileHelper.setRegId(regId);
@@ -367,6 +371,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		try {
 			String draftVid = null;
 			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(regId);
+			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+					"UIN Draft Data " + regId + " " + objectMapper.writeValueAsString(uinDraft.get()));
 			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
 					"Fetch IDrepo Draft Record for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 			if (uinDraft.isEmpty()) {
@@ -421,7 +427,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 						"Discard Draft for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 				return constructIdResponse(null, uinObject.getStatusCode(), null, draftVid);
 			}
-		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
+		} catch (DataAccessException | TransactionException | JDBCConnectionException | JsonProcessingException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
 		}
