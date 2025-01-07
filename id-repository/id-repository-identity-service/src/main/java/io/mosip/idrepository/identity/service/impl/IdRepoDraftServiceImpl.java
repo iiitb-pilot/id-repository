@@ -372,7 +372,17 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			String draftVid = null;
 			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(regId);
 			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
-					"UIN Draft Data for RID " + regId + " " + objectMapper.writeValueAsString(uinDraft.get()));
+					"UIN Draft Data for RID " + regId + " Reg Id " + uinDraft.get().getRegId());
+			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+					"UIN Draft Data for RID " + regId + " UIN " + uinDraft.get().getUin());
+			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+					"UIN Draft Data for RID " + regId + " UIN HASH " + uinDraft.get().getUinHash());
+			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+					"UIN Draft Data for RID " + regId + " Status Code " + uinDraft.get().getStatusCode());
+			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+					"UIN Draft Data for RID " + regId + " UIN DATA " + new String(uinDraft.get().getUinData(), StandardCharsets.UTF_8));
+			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+					"UIN Draft Data for RID " + regId + " UIN DATA Hash " + uinDraft.get().getUinDataHash());
 			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
 					"Fetch IDrepo Draft Record for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 			if (uinDraft.isEmpty()) {
@@ -427,7 +437,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 						"Discard Draft for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 				return constructIdResponse(null, uinObject.getStatusCode(), null, draftVid);
 			}
-		} catch (DataAccessException | TransactionException | JDBCConnectionException | JsonProcessingException e) {
+		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
 		}
