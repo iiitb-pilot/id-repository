@@ -19,7 +19,8 @@ public interface UinHistoryRepo extends JpaRepository<UinHistory, String> {
 	 * @param regId the reg id
 	 * @return true, if successful
 	 */
-	boolean existsByRegId(String regId);
+	@Query(value = "SELECT EXISTS(SELECT 1 FROM uin_h u WHERE u.reg_id= :regId)", nativeQuery = true)
+	boolean existsByRegId(@Param("regId") String regId);
 	
 	/**
 	 * Gets the uin by refId .
