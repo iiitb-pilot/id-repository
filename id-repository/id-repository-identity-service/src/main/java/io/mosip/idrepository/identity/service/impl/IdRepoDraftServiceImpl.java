@@ -419,7 +419,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 					draftVid = vidDraftHelper.generateDraftVid(uin);
 					idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
 							"Generate Draft VID for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
-					uinObject = super.addIdentity(idRequest, uin);
+					uinObject = super.addIdentity(idRequest, uin, regId, startTime);
 					idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
 							"Add Identity for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 					vidDraftHelper.activateDraftVid(draftVid);

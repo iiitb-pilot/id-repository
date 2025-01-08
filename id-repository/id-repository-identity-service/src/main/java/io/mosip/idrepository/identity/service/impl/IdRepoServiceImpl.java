@@ -87,11 +87,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.CBEFF_FORMAT;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_FORMAT_ATTRIBUTE;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_NAME_ATTRIBUTE;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.*;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.PUBLISH_DRAFT;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.HANDLE_RECORD_EXISTS;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
@@ -230,25 +227,36 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	@Override
-	public Uin addIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
-		long startTime = System.currentTimeMillis();
+	public Uin addIdentity(IdRequestDTO request, String uin, String regId, Long startTime) throws IdRepoAppException {
 		String uinRefId = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, uin + SPLITTER + DateUtils.getUTCCurrentDateTime())
 				.toString();
 		ObjectNode identityObject = mapper.convertValue(request.getRequest().getIdentity(), ObjectNode.class);
 		identityObject.putPOJO(VERIFIED_ATTRIBUTES, request.getRequest().getVerifiedAttributes());
 		byte[] identityInfo = convertToBytes(identityObject);
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+				"AddIdentity Convert to Bytes for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 		String uinHash = getUinHash(uin);
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+				"Generating UinHash for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+				"Generating UinHashWithSalt for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 		String uinToEncrypt = getUinToEncrypt(uin);
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+				"Generating uinToEncrypt for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 
 		long checkAndGetHandlesStartTime = System.currentTimeMillis();
 		Map<String, HandleDto> selectedUniqueHandlesMap = checkAndGetHandles(request);
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+				"checkAndGetHandles for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 		mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 				"Total time taken to complete checkAndGetHandles - " + uinRefId + " (" + (System.currentTimeMillis() - checkAndGetHandlesStartTime) + "ms)");
 
 		anonymousProfileHelper
 			.setRegId(request.getRequest().getRegistrationId())
 			.setNewUinData(identityInfo);
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+				"Anonymous Profile Helper set for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 
 		List<UinDocument> docList = new ArrayList<>();
 		List<UinBiometric> bioList = new ArrayList<>();
@@ -257,6 +265,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			long docSaveStartTime = System.currentTimeMillis();
 			addDocuments(uinHashWithSalt, identityInfo, request.getRequest().getDocuments(), uinRefId, docList, bioList,
 					false);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+					"Adding Documents for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 					"Total time taken to Save Document and Biometrics - " + uinRefId + " (" + (System.currentTimeMillis() - docSaveStartTime) + "ms)");
 			long uinSaveStartTime = System.currentTimeMillis();
@@ -264,6 +274,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					request.getRequest().getRegistrationId(), activeStatus, IdRepoSecurityManager.getUser(),
 					DateUtils.getUTCCurrentDateTime(), null, null, false, null, bioList, docList);
 			uinEntity = uinRepo.save(uinEntity);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+					"Saving into Database of Uin Repo for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 					"Total time taken to Save into UinRepo with document - " + uinRefId + " (" + (System.currentTimeMillis() - uinSaveStartTime) + "ms)");
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
@@ -274,6 +286,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					request.getRequest().getRegistrationId(), activeStatus, IdRepoSecurityManager.getUser(),
 					DateUtils.getUTCCurrentDateTime(), null, null, false, null, null, null);
 			uinEntity = uinRepo.save(uinEntity);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+					"Saving into Database of Uin Repo for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 					"Total time taken to Save into UinRepo without document - " + uinRefId + " (" + (System.currentTimeMillis() - uinSaveStartTime) + "ms)");
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
@@ -284,18 +298,26 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		uinHistoryRepo.save(new UinHistory(uinRefId, DateUtils.getUTCCurrentDateTime(), uinEntity.getUin(), uinEntity.getUinHash(),
 						uinEntity.getUinData(), uinEntity.getUinDataHash(), uinEntity.getRegId(), activeStatus,
 						IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(), null, null, false, null));
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+				"Saving into Database of Uin History Repo for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 		mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 				"Total time taken to Save into UinHistoryRepo - " + uinRefId + " (" + (System.currentTimeMillis() - uinHistorySaveStartTime) + "ms)");
 
 		long addIdentityHandleStartTime = System.currentTimeMillis();
 		addIdentityHandle(uinEntity, selectedUniqueHandlesMap);
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+				"Adding Identity Handle for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 		mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 				"Total time taken to complete addIdentityHandle - " + uinRefId + " (" + (System.currentTimeMillis() - addIdentityHandleStartTime) + "ms)");
 		long issueCredStartTime = System.currentTimeMillis();
 		issueCredential(uinEntity.getUin(), uinHashWithSalt, activeStatus, null, uinEntity.getRegId());
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+				"Issuing Credentials for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 		mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 				"Total time taken to complete issueCredential - " + uinRefId + " (" + (System.currentTimeMillis() - issueCredStartTime) + "ms)");
 		anonymousProfileHelper.buildAndsaveProfile(false);
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+				"Saving Anonymous Profile for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 		mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 				"Total time taken to complete addIdentity - " + uinRefId + " (" + (System.currentTimeMillis() - startTime) + "ms)");
 		return uinEntity;

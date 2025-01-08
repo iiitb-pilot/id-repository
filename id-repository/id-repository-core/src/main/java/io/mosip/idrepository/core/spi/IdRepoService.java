@@ -26,7 +26,7 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	 * @return the response
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	RESPONSE addIdentity(REQUEST request, String uin) throws IdRepoAppException;
+	RESPONSE addIdentity(REQUEST request, String uin, String regId, Long startTime) throws IdRepoAppException;
 
 	/**
 	 * This service will retrieve an ID record from ID repository for a given UIN
