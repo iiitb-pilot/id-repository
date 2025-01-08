@@ -57,8 +57,7 @@ public interface UinDraftRepo extends JpaRepository<UinDraft, String> {
 	 * @param regId the registration id
 	 * @return the uin draft
 	 */
-	@Query(value = "SELECT * FROM uin_draft u WHERE u.reg_id= :regId", nativeQuery = true)
-	Optional<UinDraft> findByRegId(@Param("regId") String regId);
+	Optional<UinDraft> findByRegId(String regId);
 	
 	
 	/**
