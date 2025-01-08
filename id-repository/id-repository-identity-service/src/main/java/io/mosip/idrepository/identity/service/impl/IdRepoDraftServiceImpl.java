@@ -158,20 +158,29 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	@Override
 	public IdResponseDTO createDraft(String registrationId, String uin) throws IdRepoAppException {
 		try {
+			Long startTime = System.currentTimeMillis();
+			idrepoDraftLogger.info("Test", "Test", "Test", "Starting Creating UIn Draft for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
 			UinDraft newDraft;
 			if (isForceMergeEnabled || (!super.uinHistoryRepo.existsByRegId(registrationId) && !uinDraftRepo.existsByRegId(registrationId))) {
+				idrepoDraftLogger.info("Test", "Test", "Test", "Record Exist in UIN Draft History for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
+
 				if (isForceMergeEnabled) {
 					IdResponseDTO response = proxyService.retrieveIdentityByRid(registrationId, uin, null);
+					idrepoDraftLogger.info("Test", "Test", "Test", "Retrieve Record from Proxy Service for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
 					Object res = response.getResponse().getIdentity();
 					LinkedHashMap<String, Object> map = mapper.convertValue(res, LinkedHashMap.class);
 					uin = String.valueOf(map.get("UIN"));
 				}
 				if (Objects.nonNull(uin)) {
 					Optional<Uin> uinObjectOptional = super.uinRepo.findByUinHash(super.getUinHash(uin));
+					idrepoDraftLogger.info("Test", "Test", "Test", "Find the UIN using UIN Hash m Proxy Service for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
+
 					if (uinObjectOptional.isPresent()) {
 						Uin uinObject = uinObjectOptional.get();
 						newDraft = mapper.convertValue(uinObject, UinDraft.class);
 						updateBiometricAndDocumentDrafts(registrationId, newDraft, uinObject);
+						idrepoDraftLogger.info("Test", "Test", "Test", "updateBiometricAndDocumentDrafts for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
+
 						newDraft.setRegId(registrationId);
 						newDraft.setUin(super.getUinToEncrypt(uin));
 					} else {
@@ -187,12 +196,15 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 					byte[] uinData = convertToBytes(generateIdentityObject(uin));
 					newDraft.setUinData(uinData);
 					newDraft.setUinDataHash(securityManager.hash(uinData));
+					idrepoDraftLogger.info("Test", "Test", "Test", "Else Condition for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
 				}
 				newDraft.setRegId(registrationId);
 				newDraft.setStatusCode("DRAFT");
 				newDraft.setCreatedBy(IdRepoSecurityManager.getUser());
 				newDraft.setCreatedDateTime(DateUtils.getUTCCurrentDateTime());
 				uinDraftRepo.save(newDraft);
+				idrepoDraftLogger.info("Test", "Test", "Test", "Saving Idrepo Draft Details into Table for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
+
 				return constructIdResponse(null, DRAFTED, null, null);
 			} else {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT, "RID ALREADY EXIST");
