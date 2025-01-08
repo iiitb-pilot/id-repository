@@ -191,7 +191,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * io.mosip.kernel.core.idrepo.spi.IdRepoService#addIdentity(java.lang.Object)
 	 */
 	@Override
-	public IdResponseDTO addIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
+	public IdResponseDTO addIdentity(IdRequestDTO request, String uin, String regId, Long startTime) throws IdRepoAppException {
 		try {
 			String uinHash = retrieveUinHash(uin);
 			long uinExistStartTime = System.currentTimeMillis();
@@ -204,7 +204,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			}
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 					"Total time taken to do UIN exist check - " + uinHash + " (" + (System.currentTimeMillis() - uinExistStartTime) + "ms)");
-			Uin uinEntity = service.addIdentity(request, uin);
+			Uin uinEntity = service.addIdentity(request, uin, request.getId(), System.currentTimeMillis());
 
 			notify(uin, false, request.getRequest().getRegistrationId());
 			return constructIdResponse(this.id.get(CREATE), uinEntity, null);

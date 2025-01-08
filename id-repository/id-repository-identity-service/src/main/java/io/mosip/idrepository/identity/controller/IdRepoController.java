@@ -196,7 +196,7 @@ public class IdRepoController {
 			}
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY,
 					"Total time taken to validate UIN -  (" + (System.currentTimeMillis() - uinValidateStartTime) + "ms)");
-			return new ResponseEntity<>(idRepoService.addIdentity(request, uin), HttpStatus.OK);
+			return new ResponseEntity<>(idRepoService.addIdentity(request, uin, request.getId(), System.currentTimeMillis()), HttpStatus.OK);
 		} catch (IdRepoDataValidationException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE,
 					regId, IdType.ID, e);

@@ -114,7 +114,7 @@ public class IdRepoControllerTest {
 		requestDTO.setIdentity(identity);
 		request.setRequest(requestDTO);
 		when(validator.validateUin(any())).thenReturn(true);
-		when(idRepoService.addIdentity(any(), any())).thenReturn(response);
+		when(idRepoService.addIdentity(any(), any(), request.getId(), System.currentTimeMillis())).thenReturn(response);
 		ResponseEntity<IdResponseDTO> responseEntity = controller.addIdentity(request,
 				new BeanPropertyBindingResult(request, "IdRequestDTO"));
 		assertEquals(response, responseEntity.getBody());
@@ -134,7 +134,7 @@ public class IdRepoControllerTest {
 				Object.class);
 		requestDTO.setIdentity(identity);
 		request.setRequest(requestDTO);
-		when(idRepoService.addIdentity(any(), any()))
+		when(idRepoService.addIdentity(any(), any(), request.getId(), System.currentTimeMillis()))
 				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
 		ResponseEntity<IdResponseDTO> responseEntity = controller.addIdentity(request,
 				new BeanPropertyBindingResult(request, "IdRequestDTO"));
