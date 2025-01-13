@@ -168,7 +168,7 @@ public class VidServiceImplTest {
 		node.put("vid", "12345");
 		responseWrapper.setResponse(mapper.readValue(node.toString(), Object.class));
 		when(restHelper.requestSync(restReq)).thenReturn(responseWrapper);
-		ResponseWrapper<VidResponseDTO> vidResponse = service.generateVid(request);
+		ResponseWrapper<VidResponseDTO> vidResponse = service.generateVid(request, System.currentTimeMillis());
 		assertEquals(vidResponse.getResponse().getVid().toString(), vid.getVid());
 		assertEquals(vidResponse.getResponse().getVidStatus(), vid.getStatusCode());
 	}
@@ -206,7 +206,7 @@ public class VidServiceImplTest {
 		responseWrapper.setResponse(mapper.readValue(node.toString(), Object.class));
 		when(restHelper.requestSync(restReq)).thenReturn(responseWrapper);
 		try {
-			service.generateVid(request);
+			service.generateVid(request, System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals("Invalid Input Parameter - %s", e.getErrorText());
 		}
@@ -244,7 +244,7 @@ public class VidServiceImplTest {
 		node.put("vid", "12345");
 		responseWrapper.setResponse(mapper.readValue(node.toString(), Object.class));
 		when(restHelper.requestSync(restReq)).thenReturn(responseWrapper);
-		ResponseWrapper<VidResponseDTO> vidResponse = service.generateVid(request);
+		ResponseWrapper<VidResponseDTO> vidResponse = service.generateVid(request, System.currentTimeMillis());
 		assertEquals(vidResponse.getResponse().getVid().toString(), vid.getVid());
 		assertEquals(vidResponse.getResponse().getVidStatus(), vid.getStatusCode());
 	}
@@ -279,7 +279,7 @@ public class VidServiceImplTest {
 		node.put("vid", "12345");
 		responseWrapper.setResponse(mapper.readValue(node.toString(), Object.class));
 		when(restHelper.requestSync(restReq)).thenReturn(responseWrapper);
-		ResponseWrapper<VidResponseDTO> vidResponse = service.generateVid(request);
+		ResponseWrapper<VidResponseDTO> vidResponse = service.generateVid(request, System.currentTimeMillis());
 		assertEquals(vidResponse.getResponse().getVid().toString(), vid.getVid());
 		assertEquals(vidResponse.getResponse().getVidStatus(), vid.getStatusCode());
 	}
@@ -317,7 +317,7 @@ public class VidServiceImplTest {
 		node.put("vid", "12345");
 		responseWrapper.setResponse(mapper.readValue(node.toString(), Object.class));
 		when(restHelper.requestSync(restReq)).thenReturn(responseWrapper);
-		ResponseWrapper<VidResponseDTO> vidResponse = service.generateVid(request);
+		ResponseWrapper<VidResponseDTO> vidResponse = service.generateVid(request, System.currentTimeMillis());
 		assertEquals(vidResponse.getResponse().getVid().toString(), vid.getVid());
 		assertEquals(vidResponse.getResponse().getVidStatus(), vid.getStatusCode());
 	}
@@ -352,7 +352,7 @@ public class VidServiceImplTest {
 		responseWrapper.setResponse(mapper.readValue(node.toString(), Object.class));
 		when(restHelper.requestSync(restReq)).thenReturn(responseWrapper);
 		try {
-			service.generateVid(request);
+			service.generateVid(request, System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.VID_POLICY_FAILED.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.VID_POLICY_FAILED.getErrorMessage(), e.getErrorText());
@@ -384,7 +384,7 @@ public class VidServiceImplTest {
 		request.setUin("2953190571");
 		request.setVidType("Perpetual");
 		try {
-			service.generateVid(request);
+			service.generateVid(request, System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.VID_POLICY_FAILED.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.VID_POLICY_FAILED.getErrorMessage(), e.getErrorText());
@@ -415,7 +415,7 @@ public class VidServiceImplTest {
 		VidRequestDTO request = new VidRequestDTO();
 		request.setUin("2953190571");
 		try {
-			service.generateVid(request);
+			service.generateVid(request, System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.INVALID_UIN.getErrorCode(), e.getErrorCode());
 			assertEquals(String.format(IdRepoErrorConstants.INVALID_UIN.getErrorMessage(), "DEACTIVATED"),
@@ -452,7 +452,7 @@ public class VidServiceImplTest {
 		VidRequestDTO vidRequest = new VidRequestDTO();
 		vidRequest.setUin("2953190571");
 		try {
-			service.generateVid(vidRequest);
+			service.generateVid(vidRequest, System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorMessage(), e.getErrorText());
@@ -487,7 +487,7 @@ public class VidServiceImplTest {
 		VidRequestDTO vidRequest = new VidRequestDTO();
 		vidRequest.setUin("2953190571");
 		try {
-			service.generateVid(vidRequest);
+			service.generateVid(vidRequest, System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.UIN_RETRIEVAL_FAILED.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.UIN_RETRIEVAL_FAILED.getErrorMessage(), e.getErrorText());
@@ -521,7 +521,7 @@ public class VidServiceImplTest {
 		when(restBuilder.buildRequest(RestServicesConstants.VID_GENERATOR_SERVICE, null, ResponseWrapper.class)).thenReturn(restReq);
 		when(restHelper.requestSync(restReq)).thenThrow(new RestServiceException(IdRepoErrorConstants.VID_GENERATION_FAILED));
 		try {
-			service.generateVid(request);
+			service.generateVid(request, System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.VID_GENERATION_FAILED.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.VID_GENERATION_FAILED.getErrorMessage(), e.getErrorText());
@@ -546,7 +546,7 @@ public class VidServiceImplTest {
 					.thenReturn("3920450236".getBytes());
 			VidRequestDTO request = new VidRequestDTO();
 			request.setUin("2953190571");
-			service.generateVid(request);
+			service.generateVid(request, System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.VID_GENERATION_FAILED.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.VID_GENERATION_FAILED.getErrorMessage(), e.getErrorText());
@@ -573,7 +573,7 @@ public class VidServiceImplTest {
 					.thenReturn("3920450236".getBytes());
 			VidRequestDTO request = new VidRequestDTO();
 			request.setUin("2953190571");
-			service.generateVid(request);
+			service.generateVid(request, System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorMessage(), e.getErrorText());
@@ -590,7 +590,7 @@ public class VidServiceImplTest {
 		try {
 			VidRequestDTO request = new VidRequestDTO();
 			request.setUin("2953190571");
-			service.updateVid("123", request);
+			service.updateVid("123", request, System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.VID_GENERATION_FAILED.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.VID_GENERATION_FAILED.getErrorMessage(), e.getErrorText());
@@ -607,7 +607,7 @@ public class VidServiceImplTest {
 		try {
 			VidRequestDTO request = new VidRequestDTO();
 			request.setUin("2953190571");
-			service.updateVid("123", request);
+			service.updateVid("123", request, System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorMessage(), e.getErrorText());
@@ -621,7 +621,7 @@ public class VidServiceImplTest {
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 		try {
-			service.retrieveUinByVid("123");
+			service.retrieveUinByVid("123", System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.VID_GENERATION_FAILED.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.VID_GENERATION_FAILED.getErrorMessage(), e.getErrorText());
@@ -636,7 +636,7 @@ public class VidServiceImplTest {
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 		try {
-			service.retrieveUinByVid("123");
+			service.retrieveUinByVid("123", System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorMessage(), e.getErrorText());
@@ -672,7 +672,7 @@ public class VidServiceImplTest {
 		VidRequestDTO request = new VidRequestDTO();
 		request.setUin("2953190571");
 		try {
-			service.generateVid(request);
+			service.generateVid(request, System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
 			assertEquals(String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), "vid"),
@@ -702,7 +702,7 @@ public class VidServiceImplTest {
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
 		String uin = "3920450236";
 		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(uin.getBytes());
-		ResponseWrapper<VidResponseDTO> retrieveUinByVid = service.retrieveUinByVid("12345678");
+		ResponseWrapper<VidResponseDTO> retrieveUinByVid = service.retrieveUinByVid("12345678", System.currentTimeMillis());
 		assertEquals(uin, String.valueOf(retrieveUinByVid.getResponse().getUin()));
 	}
 
@@ -721,7 +721,7 @@ public class VidServiceImplTest {
 		try {
 			Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
 					.thenReturn("3920450236".getBytes());
-			service.retrieveUinByVid("12345678");
+			service.retrieveUinByVid("12345678", System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.INVALID_VID.getErrorCode(), e.getErrorCode());
 			assertEquals(String.format(IdRepoErrorConstants.INVALID_VID.getErrorMessage(), "EXPIRED"),
@@ -745,7 +745,7 @@ public class VidServiceImplTest {
 		try {
 			Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
 					.thenReturn("3920450236".getBytes());
-			service.retrieveUinByVid("12345678");
+			service.retrieveUinByVid("12345678", System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.UIN_HASH_MISMATCH.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.UIN_HASH_MISMATCH.getErrorMessage(), e.getErrorText());
@@ -767,7 +767,7 @@ public class VidServiceImplTest {
 		try {
 			Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
 					.thenReturn("3920450236".getBytes());
-			service.retrieveUinByVid("12345678");
+			service.retrieveUinByVid("12345678", System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.INVALID_VID.getErrorCode(), e.getErrorCode());
 			assertEquals(String.format(IdRepoErrorConstants.INVALID_VID.getErrorMessage(), "Blocked"),
@@ -782,7 +782,7 @@ public class VidServiceImplTest {
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 		try {
-			service.retrieveUinByVid("12345678");
+			service.retrieveUinByVid("12345678", System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorMessage(), e.getErrorText());
@@ -813,7 +813,7 @@ public class VidServiceImplTest {
 		VidRequestDTO request = new VidRequestDTO();
 		String vidStatus = "EXPIRED";
 		request.setVidStatus(vidStatus);
-		ResponseWrapper<VidResponseDTO> updateVid = service.updateVid("12345678", request);
+		ResponseWrapper<VidResponseDTO> updateVid = service.updateVid("12345678", request, System.currentTimeMillis());
 		assertEquals(vidStatus, updateVid.getResponse().getVidStatus());
 	}
 
@@ -858,7 +858,7 @@ public class VidServiceImplTest {
 		node.put("vid", "12345");
 		response.setResponse(mapper.readValue(node.toString(), Object.class));
 		when(restHelper.requestSync(restReq)).thenReturn(response);
-		service.updateVid("12345678", request);
+		service.updateVid("12345678", request, System.currentTimeMillis());
 	}
 
 	@Test
@@ -870,7 +870,7 @@ public class VidServiceImplTest {
 		VidRequestDTO request = new VidRequestDTO();
 		request.setVidStatus("ACTIVE");
 		try {
-			service.updateVid("12345678", request);
+			service.updateVid("12345678", request, System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorMessage(), e.getErrorText());
@@ -916,7 +916,7 @@ public class VidServiceImplTest {
 		node.put("vid", "12345");
 		responseWrapper.setResponse(mapper.readValue(node.toString(), Object.class));
 		when(restHelper.requestSync(restReq)).thenReturn(responseWrapper);
-		ResponseWrapper<VidResponseDTO> regenerateVid = service.regenerateVid("12345678");
+		ResponseWrapper<VidResponseDTO> regenerateVid = service.regenerateVid("12345678", System.currentTimeMillis());
 		assertEquals(vidValue, String.valueOf(regenerateVid.getResponse().getVid()));
 		assertEquals("INVALIDATED", regenerateVid.getResponse().getVidStatus());
 	}
@@ -927,7 +927,7 @@ public class VidServiceImplTest {
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 		try {
-			service.regenerateVid("12345678");
+			service.regenerateVid("12345678", System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorMessage(), e.getErrorText());
@@ -954,7 +954,7 @@ public class VidServiceImplTest {
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
 		try {
-			service.regenerateVid("12345678");
+			service.regenerateVid("12345678", System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.INVALID_VID.getErrorCode(), e.getErrorCode());
 			assertEquals(String.format(IdRepoErrorConstants.INVALID_VID.getErrorMessage(), "INACTIVE"),
@@ -970,7 +970,7 @@ public class VidServiceImplTest {
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 		try {
-			service.regenerateVid("123");
+			service.regenerateVid("123", System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorMessage(), e.getErrorText());
@@ -1011,7 +1011,7 @@ public class VidServiceImplTest {
 			.thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 			Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
 					.thenReturn("3920450236".getBytes());
-			service.regenerateVid("123");
+			service.regenerateVid("123", System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.VID_GENERATION_FAILED.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.VID_GENERATION_FAILED.getErrorMessage(), e.getErrorText());
@@ -1051,7 +1051,7 @@ public class VidServiceImplTest {
 		try {
 			Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
 					.thenReturn("3920450236".getBytes());
-			service.regenerateVid("123");
+			service.regenerateVid("123", System.currentTimeMillis());
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.VID_POLICY_FAILED.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.VID_POLICY_FAILED.getErrorMessage(), e.getErrorText());

@@ -189,14 +189,17 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	 * @see io.mosip.idrepository.core.spi.VidService#createVid(java.lang.Object)
 	 */
 	@Override
-	public ResponseWrapper<VidResponseDTO> generateVid(VidRequestDTO vidRequest) throws IdRepoAppException {
+	public ResponseWrapper<VidResponseDTO> generateVid(VidRequestDTO vidRequest, Long startTime) throws IdRepoAppException {
 		String uin = vidRequest.getUin();
 		try {
 			Vid vid;
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID, "Entering VID Generation Issue for VID : " + uin + " " + (System.currentTimeMillis() - startTime) + " ms");
 			if (Objects.nonNull(vidRequest.getVidStatus()) && vidRequest.getVidStatus().contentEquals(DRAFT_STATUS)) {
-				vid = generateVid(uin, vidRequest.getVidType(), DRAFT_STATUS);
+				vid = generateVid(uin, vidRequest.getVidType(), DRAFT_STATUS, startTime);
+				mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID, "VID Generation completed with first method for VID : " + uin + " " + (System.currentTimeMillis() - startTime) + " ms");
 			} else {
-				vid = generateVidWithActiveUin(uin, vidRequest.getVidType());
+				vid = generateVidWithActiveUin(uin, vidRequest.getVidType(), startTime);
+				mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID, "VID Generation completed with second method for VID : " + uin + " " + (System.currentTimeMillis() - startTime) + " ms");
 			}
 			VidResponseDTO responseDTO = new VidResponseDTO();
 			responseDTO.setVid(vid.getVid());
@@ -212,9 +215,11 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		}
 	}
 	
-	private Vid generateVidWithActiveUin(String uin, String vidType) throws IdRepoAppException {
+	private Vid generateVidWithActiveUin(String uin, String vidType, Long startTime) throws IdRepoAppException {
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID, "Second generateVidWithActiveUin method for VID : " + uin + " " + (System.currentTimeMillis() - startTime) + " ms");
 		checkUinStatus(uin);
-		return generateVid(uin, vidType, EnvUtil.getVidActiveStatus());
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID, "Second checkUinStatus method for VID : " + uin + " " + (System.currentTimeMillis() - startTime) + " ms");
+		return generateVid(uin, vidType, EnvUtil.getVidActiveStatus(), startTime);
 	}
 
 	/**
@@ -228,21 +233,29 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	 * @throws IdRepoAppException
 	 *             the id repo app exception
 	 */
-	private Vid generateVid(String uin, String vidType, String vidStatus) throws IdRepoAppException {
+	private Vid generateVid(String uin, String vidType, String vidStatus, Long startTime) throws IdRepoAppException {
 		int saltId = securityManager.getSaltKeyForId(uin);
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID, "first method SALT generation for VID : " + uin + " " + (System.currentTimeMillis() - startTime) + " ms");
 		String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(saltId);
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID, "first method Retrieve Encrypted Salt for VID : " + uin + " " + (System.currentTimeMillis() - startTime) + " ms");
 		String hashSalt = uinHashSaltRepo.retrieveSaltById(saltId);
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID, "first method SALT Hash generation for VID : " + uin + " " + (System.currentTimeMillis() - startTime) + " ms");
 		String uinToEncrypt = saltId + SPLITTER + uin + SPLITTER + encryptSalt;
 		String uinHash = String.valueOf(saltId) + SPLITTER
 				+ securityManager.hashwithSalt(uin.getBytes(), CryptoUtil.decodePlainBase64(hashSalt));
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID, "first method UIN Hash generation for VID : " + uin + " " + (System.currentTimeMillis() - startTime) + " ms");
 		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime();
 		List<Vid> vidDetails = vidRepo.findByUinHashAndStatusCodeAndVidTypeCodeAndExpiryDTimesAfter(uinHash, vidStatus,
 				vidType, currentTime);
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID, "first method find VID from VID Repo for VID : " + uin + " " + (System.currentTimeMillis() - startTime) + " ms");
 		Collections.sort(vidDetails);
 		VidPolicy policy = policyProvider.getPolicy(vidType);
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID, "first method fetch Policy from policy Manager for VID : " + uin + " " + (System.currentTimeMillis() - startTime) + " ms");
+
 		if (Objects.isNull(vidDetails) || vidDetails.isEmpty() || vidDetails.size() < policy.getAllowedInstances()) {
 			String vidRefId = UUIDUtils
 					.getUUID(UUIDUtils.NAMESPACE_OID, uin + SPLITTER + DateUtils.getUTCCurrentDateTime()).toString();
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID, "first method get UUID for VID : " + uin + " " + (System.currentTimeMillis() - startTime) + " ms");
 			Vid vidEntity = new Vid(vidRefId, generateVid(), uinHash, uinToEncrypt, vidType, currentTime,
 					Objects.nonNull(policy.getValidForInMinutes())
 							? DateUtils.getUTCCurrentDateTime().plusMinutes(policy.getValidForInMinutes())
@@ -251,14 +264,17 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			// Get the salted ID Hash before modifiying the vid entity, otherwise result in
 			// onFlushDirty call in the interceptor resulting in inconsistently encrypted
 			// UIN value in VID entity
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID, "first method before saving idrepo for VID : " + uin + " " + (System.currentTimeMillis() - startTime) + " ms");
 			if (!vidStatus.contentEquals(DRAFT_STATUS))
 				notify(uin, vidStatus,
 						Collections.singletonList(createVidInfo(vidEntity, getIdHashAndAttributesForIDAEvent(vidEntity.getVid()))),
 						false);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID, "first method Notify the residento for VID : " + uin + " " + (System.currentTimeMillis() - startTime) + " ms");
 			return vidRepo.save(vidEntity);
 		} else if (vidDetails.size() == policy.getAllowedInstances() && Boolean.TRUE.equals(policy.getAutoRestoreAllowed())) {
 			Vid vidObject = vidDetails.get(0);
 			Map<String, String> idHashAndAttributes = getIdHashAndAttributesForIDAEvent(vidObject.getVid());
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID, "first method get ID Hash for IDA Event for VID : " + uin + " " + (System.currentTimeMillis() - startTime) + " ms");
 			vidObject.setStatusCode(policy.getRestoreOnAction());
 			vidObject.setUpdatedBy(IdRepoSecurityManager.getUser());
 			vidObject.setUpdatedDTimes(DateUtils.getUTCCurrentDateTime());
@@ -267,10 +283,12 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			// Get the salted ID Hash before modifiying the vid entity, otherwise result in
 			// onFlushDirty call in the interceptor resulting in inconsistently encrypted
 			// UIN value in VID entity
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID, "first method before notify for VID : " + uin + " " + (System.currentTimeMillis() - startTime) + " ms");
 			if (!vidStatus.contentEquals(DRAFT_STATUS))
 				notify(uin, EnvUtil.getVidDeactivatedStatus(),
 						Collections.singletonList(createVidInfo(vidObject, idHashAndAttributes)), true);
-			return generateVid(uin, vidType, vidStatus);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID, "first method After notify for VID : " + uin + " " + (System.currentTimeMillis() - startTime) + " ms");
+			return generateVid(uin, vidType, vidStatus, startTime);
 		} else {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID,
 					"throwing vid creation failed");
@@ -351,15 +369,23 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	 * io.mosip.idrepository.core.spi.VidService#retrieveUinByVid(java.lang.String)
 	 */
 	@Override
-	public ResponseWrapper<VidResponseDTO> retrieveUinByVid(String vid) throws IdRepoAppException {
+	public ResponseWrapper<VidResponseDTO> retrieveUinByVid(String vid, Long startTime) throws IdRepoAppException {
 		try {
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"Entering retrieveUinByVid Method for VID : " + vid + " " + (System.currentTimeMillis()-startTime) + " ms" );
 			Vid vidObject = retrieveVidEntity(vid);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"Retrieved Entity from retrieveUinByVid Method for VID : " + vid + " " + (System.currentTimeMillis()-startTime) + " ms" );
 			if (vidObject != null) {
 				String decryptedUin = decryptUin(vidObject.getUin(), vidObject.getUinHash());
+				mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+						"Decrypt UIN COmpleted  retrieveUinByVid Method for VID : " + vid + " " + (System.currentTimeMillis()-startTime) + " ms" );
 				List<String> uinList = Arrays.asList(decryptedUin.split(SPLITTER));
 				checkExpiry(vidObject.getExpiryDTimes());
 				checkStatus(vidObject.getStatusCode());
 				checkUinStatus(uinList.get(1));
+				mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+						"Checking UIN Status retrieveUinByVid Method for VID : " + vid + " " + (System.currentTimeMillis()-startTime) + " ms" );
 				VidResponseDTO resDTO = new VidResponseDTO();
 				resDTO.setUin(uinList.get(1));
 				return buildResponse(resDTO, id.get("read"));
@@ -388,18 +414,37 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	@Override
 	public VidsInfosDTO retrieveVidsByUin(String uin) throws IdRepoAppException {
 		try {
+			Long startTime = System.currentTimeMillis();
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"Entering into retrieveVidsByUin Method for VID : " + uin + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
 			int saltId = securityManager.getSaltKeyForId(uin);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"fetch Salt id retrieveVidsByUin Method for VID : " + uin + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
 			String hashSalt = uinHashSaltRepo.retrieveSaltById(saltId);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"Fetch SAlt Hash retrieveVidsByUin Method for VID : " + uin + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
 			String uinHash = String.valueOf(saltId) + SPLITTER
 					+ securityManager.hashwithSalt(uin.getBytes(), CryptoUtil.decodePlainBase64(hashSalt));
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"Preparing UIN Hash retrieveVidsByUin Method for VID : " + uin + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
 			List<Vid> vidList = vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(uinHash,
 					EnvUtil.getVidActiveStatus(), DateUtils.getUTCCurrentDateTime());
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"Find VID List from VID Repo retrieveVidsByUin Method for VID : " + uin + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
 			// Get the salted ID Hash before modifiying the vid entity, otherwise result in
 			// onFlushDirty call in the interceptor resulting in inconsistently encrypted
 			// UIN value in VID entity
 			List<VidInfoDTO> vidInfos = vidList.stream()
 					.map(vid -> createVidInfo(vid, getIdHashAndAttributesForIDAEvent(vid.getVid())))
 					.collect(Collectors.toList());
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"getIDHashAndAttributesForIDAEvent retrieveVidsByUin Method for VID : " + uin + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
 			VidsInfosDTO response = new VidsInfosDTO();
 			response.setResponse(vidInfos);
 			return response;
@@ -421,20 +466,38 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	 * java.lang.Object)
 	 */
 	@Override
-	public ResponseWrapper<VidResponseDTO> updateVid(String vid, VidRequestDTO request) throws IdRepoAppException {
+	public ResponseWrapper<VidResponseDTO> updateVid(String vid, VidRequestDTO request, Long startTime) throws IdRepoAppException {
 		try {
 			String vidStatus = request.getVidStatus();
 			Vid vidObject = retrieveVidEntity(vid);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"Retrive vid from Repo updateVid Method for VID : " + vid + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
 			if (Objects.isNull(vidObject)) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, UPDATE_VID,
 						THROWING_NO_RECORD_FOUND_VID);
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			}
 			checkStatus(vidObject.getStatusCode());
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"Check Status updateVid Method for VID : " + vid + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
 			checkExpiry(vidObject.getExpiryDTimes());
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"Check Expiry updateVid Method for VID : " + vid + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
 			String decryptedUin = decryptUin(vidObject.getUin(), vidObject.getUinHash());
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"Decrypt UIN updateVid Method for VID : " + vid + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
 			VidPolicy policy = policyProvider.getPolicy(vidObject.getVidTypeCode());
-			VidResponseDTO response = updateVidStatus(vidStatus, vidObject, decryptedUin, policy);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"Fetch Policy updateVid Method for VID : " + vid + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
+			VidResponseDTO response = updateVidStatus(vidStatus, vidObject, decryptedUin, policy, startTime);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"Update VID Status updateVid Method for VID : " + vid + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
 			return buildResponse(response, id.get("update"));
 		} catch (IdRepoAppUncheckedException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, UPDATE_VID, "\n" + e.getMessage());
@@ -461,13 +524,16 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	 * @throws IdRepoAppException
 	 *             the id repo app exception
 	 */
-	private VidResponseDTO updateVidStatus(String vidStatus, Vid vidObject, String decryptedUin, VidPolicy policy)
+	private VidResponseDTO updateVidStatus(String vidStatus, Vid vidObject, String decryptedUin, VidPolicy policy, Long startTime)
 			throws IdRepoAppException {
 		String uin = Arrays.asList(decryptedUin.split(SPLITTER)).get(1);
 		// Get the salted ID Hash before modifiying the vid entity, otherwise result in
 		// onFlushDirty call in the interceptor resulting in inconsistently encrypted
 		// UIN value in VID entity
 		Map<String, String> idHashAndAttributes = getIdHashAndAttributesForIDAEvent(vidObject.getVid());
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+				"getIdHashAndAttributesForIDAEvent updateVidStatus Method for VID : " + vidObject.getVid() + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
 		if (!(vidStatus.equals(EnvUtil.getVidUnlimitedTxnStatus())
 				&& Objects.isNull(policy.getAllowedTransactions()))) {
 			vidObject.setStatusCode(vidStatus);
@@ -475,14 +541,26 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			vidObject.setUpdatedDTimes(DateUtils.getUTCCurrentDateTime());
 			vidObject.setUin(decryptedUin);
 			vidRepo.saveAndFlush(vidObject);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"Update into vidRepo updateVidStatus Method for VID : " + vidObject.getVid() + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
 			VidInfoDTO vidInfo = createVidInfo(vidObject, idHashAndAttributes);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"CreateVidInfo updateVidStatus Method for VID : " + vidObject.getVid() + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
 			notify(decryptedUin, vidStatus, Collections.singletonList(vidInfo),
 					!vidActiveStatus.contentEquals(vidStatus));
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"Notify updateVidStatus Method for VID : " + vidObject.getVid() + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
 		}
 		VidResponseDTO response = new VidResponseDTO();
 		response.setVidStatus(vidObject.getStatusCode());
 		if (Boolean.TRUE.equals(policy.getAutoRestoreAllowed()) && policy.getRestoreOnAction().equals(vidStatus)) {
-			Vid createVidResponse = generateVidWithActiveUin(uin, vidObject.getVidTypeCode());
+			Vid createVidResponse = generateVidWithActiveUin(uin, vidObject.getVidTypeCode(), startTime);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"generateVidWithActiveUin updateVidStatus Method for VID : " + vidObject.getVid() + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
 			VidResponseDTO restoredVidDTO = new VidResponseDTO();
 			restoredVidDTO.setVid(createVidResponse.getVid());
 			restoredVidDTO.setVidStatus(createVidResponse.getStatusCode());
@@ -503,26 +581,44 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	 * io.mosip.idrepository.core.spi.VidService#regenerateVid(java.lang.String)
 	 */
 	@Override
-	public ResponseWrapper<VidResponseDTO> regenerateVid(String vid) throws IdRepoAppException {
+	public ResponseWrapper<VidResponseDTO> regenerateVid(String vid, Long startTime) throws IdRepoAppException {
 		try {
 			Vid vidObject = retrieveVidEntity(vid);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"retrieveVidEntity regenerateVid Method for VID : " + vidObject.getVid() + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
 			if (Objects.isNull(vidObject)) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, REGENERATE_VID,
 						THROWING_NO_RECORD_FOUND_VID);
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			}
 			VidPolicy policy = policyProvider.getPolicy(vidObject.getVidTypeCode());
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"Fetch Policy Details regenerateVid Method for VID : " + vidObject.getVid() + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
 			if (Boolean.TRUE.equals(policy.getAutoRestoreAllowed())) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, REGENERATE_VID,
 						"throwing Vid Regeneration Failed");
 				throw new IdRepoAppException(VID_POLICY_FAILED);
 			}
 			checkRegenerateStatus(vidObject.getStatusCode());
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"checkRegenerateStatus regenerateVid Method for VID : " + vidObject.getVid() + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
 			String decryptedUin = decryptUin(vidObject.getUin(), vidObject.getUinHash());
-			updateVidStatus(VID_REGENERATE_ACTIVE_STATUS, vidObject, decryptedUin, policy);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"Decrypt UIN regenerateVid Method for VID : " + vidObject.getVid() + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
+			updateVidStatus(VID_REGENERATE_ACTIVE_STATUS, vidObject, decryptedUin, policy, startTime);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"updateVidStatus regenerateVid Method for VID : " + vidObject.getVid() + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
 			List<String> uinList = Arrays.asList(decryptedUin.split(SPLITTER));
 			VidResponseDTO response = new VidResponseDTO();
-			Vid generateVidObject = generateVidWithActiveUin(uinList.get(1), vidObject.getVidTypeCode());
+			Vid generateVidObject = generateVidWithActiveUin(uinList.get(1), vidObject.getVidTypeCode(), startTime);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
+					"generateVidWithActiveUin regenerateVid Method for VID : " + vidObject.getVid() + " " + (System.currentTimeMillis()-startTime) + " ms" );
+
 			response.setVid(generateVidObject.getVid());
 			response.setVidStatus(generateVidObject.getStatusCode());
 			return buildResponse(response, id.get("regenerate"));

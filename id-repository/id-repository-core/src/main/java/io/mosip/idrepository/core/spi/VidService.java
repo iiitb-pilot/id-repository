@@ -20,7 +20,7 @@ public interface VidService<REQUEST, RESPONSE, NOTIFICATION> {
 	 * @return the response
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	RESPONSE generateVid(REQUEST vidRequest) throws IdRepoAppException;
+	RESPONSE generateVid(REQUEST vidRequest, Long startTime) throws IdRepoAppException;
 
 	/**
 	 * This Method will return the Vid Response with Respective Uin.
@@ -29,7 +29,7 @@ public interface VidService<REQUEST, RESPONSE, NOTIFICATION> {
 	 * @return The Vid Response
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	RESPONSE retrieveUinByVid(String vid) throws IdRepoAppException;
+	RESPONSE retrieveUinByVid(String vid, Long startTime) throws IdRepoAppException;
 
 	/**
 	 * This method will update the vid status based on the conditions provided by
@@ -40,7 +40,7 @@ public interface VidService<REQUEST, RESPONSE, NOTIFICATION> {
 	 * @return The Vid Response
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	RESPONSE updateVid(String vid, REQUEST request) throws IdRepoAppException;
+	RESPONSE updateVid(String vid, REQUEST request, Long startTime) throws IdRepoAppException;
 
 	/**
 	 * This method will regenerate vid based on the conditions provided by vid
@@ -50,7 +50,7 @@ public interface VidService<REQUEST, RESPONSE, NOTIFICATION> {
 	 * @return the response
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	RESPONSE regenerateVid(String vid) throws IdRepoAppException;
+	RESPONSE regenerateVid(String vid, Long startTime) throws IdRepoAppException;
 
 	/**
 	 * This method will deactivate all the active vid's for an respective uin.

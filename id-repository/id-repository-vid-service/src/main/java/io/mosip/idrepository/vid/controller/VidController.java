@@ -148,10 +148,15 @@ public class VidController {
 			throws IdRepoAppException {
 		String uin = Optional.ofNullable(request.getRequest()).map(req -> String.valueOf(req.getUin())).orElse("null");
 		try {
+			Long startTime = System.currentTimeMillis();
 			validator.validateId(request.getId(), CREATE);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), VID_CONTROLLER, RETRIEVE_UIN_BY_VID, "Entering VID Generatiom for VID : " + uin + " "  + (System.currentTimeMillis() - startTime) + " ms");
 			DataValidationUtil.validate(errors);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), VID_CONTROLLER, RETRIEVE_UIN_BY_VID, "Validaating Errors for VID : " + uin + " " + (System.currentTimeMillis() - startTime) + " ms");
 			request.getRequest().setVidType(request.getRequest().getVidType().toUpperCase());
-			return new ResponseEntity<>(vidService.generateVid(request.getRequest()), HttpStatus.OK);
+			ResponseWrapper<VidResponseDTO> response= vidService.generateVid(request.getRequest(), startTime);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), VID_CONTROLLER, RETRIEVE_UIN_BY_VID, "Completed Generate for VID : " + uin + " " + (System.currentTimeMillis() - startTime) + " ms");
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.CREATE_VID, uin, IdType.UIN, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_CONTROLLER, RETRIEVE_UIN_BY_VID, e.getMessage());
@@ -178,7 +183,7 @@ public class VidController {
 			@Validated @RequestBody RequestWrapper<VidRequestDTO> request, @ApiIgnore Errors errors)
 			throws IdRepoAppException {
 		request.getRequest().setVidStatus(DRAFT_STATUS);
-		return createVid(request, errors);
+		return createVid(request, errors );
 	}
 
 	/**
@@ -202,8 +207,12 @@ public class VidController {
 	public ResponseEntity<ResponseWrapper<VidResponseDTO>> retrieveUinByVid(@PathVariable("VID") String vid)
 			throws IdRepoAppException {
 		try {
+			Long startTime = System.currentTimeMillis();
 			validator.validateVid(vid);
-			return new ResponseEntity<>(vidService.retrieveUinByVid(vid), HttpStatus.OK);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), VID_CONTROLLER, RETRIEVE_UIN_BY_VID, "Retrieve VID Validating VID for VID : " + vid + " " + (System.currentTimeMillis() - startTime) + " ms");
+			ResponseWrapper<VidResponseDTO> response = vidService.retrieveUinByVid(vid, startTime);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), VID_CONTROLLER, RETRIEVE_UIN_BY_VID, "Retrieve VID Completion for VID : " + vid + " " + (System.currentTimeMillis() - startTime) + " ms");
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (InvalidIDException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_CONTROLLER, RETRIEVE_UIN_BY_VID, e.getMessage());
 			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
@@ -278,10 +287,15 @@ public class VidController {
 			@Validated @RequestBody RequestWrapper<VidRequestDTO> request, @ApiIgnore Errors errors)
 			throws IdRepoAppException {
 		try {
+			Long startTime = System.currentTimeMillis();
 			validator.validateId(request.getId(), UPDATE);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), VID_CONTROLLER, RETRIEVE_UIN_BY_VID, "Validate ID in UpdateVID Patch for VID : " + vid + " " + (System.currentTimeMillis() - startTime) + " ms");
 			validator.validateVid(vid);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), VID_CONTROLLER, RETRIEVE_UIN_BY_VID, "Validate VID in UpdateVID Patch for VID : " + vid + " " + (System.currentTimeMillis() - startTime) + " ms");
 			DataValidationUtil.validate(errors);
-			return new ResponseEntity<>(vidService.updateVid(vid, request.getRequest()), HttpStatus.OK);
+			ResponseWrapper<VidResponseDTO> response = vidService.updateVid(vid, request.getRequest(), startTime);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), VID_CONTROLLER, RETRIEVE_UIN_BY_VID, "Completed UpdateVID Patch for VID : " + vid + " " + (System.currentTimeMillis() - startTime) + " ms");
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (InvalidIDException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.UPDATE_VID_STATUS, vid, IdType.VID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_CONTROLLER, UPDATE_VID_STATUS, e.getMessage());
@@ -324,8 +338,12 @@ public class VidController {
 	public ResponseEntity<ResponseWrapper<VidResponseDTO>> regenerateVid(@PathVariable("VID") String vid)
 			throws IdRepoAppException {
 		try {
+			Long startTime = System.currentTimeMillis();
 			validator.validateVid(vid);
-			return new ResponseEntity<>(vidService.regenerateVid(vid), HttpStatus.OK);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), VID_CONTROLLER, RETRIEVE_UIN_BY_VID, "Entering regenerateVid Patch for VID : " + vid + " " + (System.currentTimeMillis() - startTime) + " ms");
+			ResponseWrapper<VidResponseDTO> response = vidService.regenerateVid(vid, startTime);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), VID_CONTROLLER, RETRIEVE_UIN_BY_VID, "Completing regenerateVid Patch for VID : " + vid + " " + (System.currentTimeMillis() - startTime) + " ms");
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (InvalidIDException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.REGENERATE_VID, vid, IdType.VID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_CONTROLLER, REGENERATE_VID, e.getMessage());
