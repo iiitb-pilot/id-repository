@@ -381,9 +381,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		byte[] data = null;
 		String fileRefId = UUIDUtils
 				.getUUID(UUIDUtils.NAMESPACE_OID,
-						docType.get(FILE_NAME_ATTRIBUTE).asText() + SPLITTER + DateUtils.getUTCCurrentDateTime())
+						docType.get(FILE_NAME_ATTRIBUTE).asText() + SPLITTER + DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS'Z'"))
 				.toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
-
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "addBiometricDocuments", "File id is " + fileRefId + " For UIN Ref id " + uinRefId);
 		long decodeStartTime = System.currentTimeMillis();
 		data = CryptoUtil.decodeURLSafeBase64(doc.getValue());
 		mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "addBiometricDocuments",
