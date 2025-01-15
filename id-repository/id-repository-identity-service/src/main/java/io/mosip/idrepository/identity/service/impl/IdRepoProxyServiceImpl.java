@@ -288,9 +288,9 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				throw new IdRepoAppException(RECORD_EXISTS);
 			}
 			Uin uinEntity = service.addIdentity(request, uin);
-			throw new DataAccessException(DATABASE_ACCESS_ERROR, e);
-			notify(uin, null, null, false, request.getRequest().getRegistrationId());
-			return constructIdResponse(this.id.get(CREATE), uinEntity, null);
+			throw new JDBCConnectionException(DATABASE_ACCESS_ERROR.getErrorMessage(), null);
+			//notify(uin, null, null, false, request.getRequest().getRegistrationId());
+			//return constructIdResponse(this.id.get(CREATE), uinEntity, null);
 		} catch (IdRepoAppException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY, e.getErrorText());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
