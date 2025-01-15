@@ -36,7 +36,7 @@ import io.mosip.idrepository.core.util.EnvUtil;
  * @author Manoj SP
  */
 @Component
-@RefreshScope
+//@RefreshScope
 public class VidPolicyProvider {
 
 	/** The Constant READ_LIST_OPTIONS. */
