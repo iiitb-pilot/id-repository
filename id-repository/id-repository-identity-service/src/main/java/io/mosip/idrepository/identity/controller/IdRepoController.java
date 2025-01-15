@@ -442,11 +442,7 @@ public class IdRepoController {
 			return IdType.UIN;
 		if (validator.validateVid(id))
 			return IdType.VID;
-		if (validator.validateRid(id))
-			return IdType.RID;
-		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "getIdType", "Invalid ID");
-		throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
-				String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "id"));
+		return IdType.ID;
 	}
 	
 	public static String getHMACHashCode(String value) throws NoSuchAlgorithmException {
