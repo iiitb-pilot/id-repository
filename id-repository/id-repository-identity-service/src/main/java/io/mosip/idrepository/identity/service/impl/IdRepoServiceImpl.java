@@ -264,7 +264,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		if (Objects.nonNull(request.getRequest().getDocuments()) && !request.getRequest().getDocuments().isEmpty()) {
 			long docSaveStartTime = System.currentTimeMillis();
 			addDocuments(uinHashWithSalt, identityInfo, request.getRequest().getDocuments(), uinRefId, docList, bioList,
-					false);
+					false, regId);
 			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
 					"Adding Documents for RID " + regId + " " + (System.currentTimeMillis() - startTime) + " ms");
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
@@ -347,14 +347,14 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	private void addDocuments(String uinHash, byte[] identityInfo, List<DocumentsDTO> documents, String uinRefId,
-			List<UinDocument> docList, List<UinBiometric> bioList, boolean isDraft) {
+			List<UinDocument> docList, List<UinBiometric> bioList, boolean isDraft, String regId) {
 		ObjectNode identityObject = convertToObject(identityInfo, ObjectNode.class);
 		IntStream.range(0, documents.size()).filter(index -> identityObject.has(documents.get(index).getCategory())).forEach(index -> {
 			DocumentsDTO doc = documents.get(index);
 			JsonNode docType = identityObject.get(doc.getCategory());
 			try {
 				if (bioAttributes.contains(doc.getCategory())) {
-					addBiometricDocuments(uinHash, uinRefId, bioList, doc, docType, isDraft, index);
+					addBiometricDocuments(uinHash, uinRefId, bioList, doc, docType, isDraft, index, regId);
 					anonymousProfileHelper.setNewCbeff(doc.getValue());
 				} else {
 					addDemographicDocuments(uinHash, uinRefId, docList, doc, docType, isDraft);
@@ -377,11 +377,12 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	private void addBiometricDocuments(String uinHash, String uinRefId, List<UinBiometric> bioList, DocumentsDTO doc,
-			JsonNode docType, boolean isDraft, int index) throws IdRepoAppException {
+			JsonNode docType, boolean isDraft, int index, String regId) throws IdRepoAppException {
 		byte[] data = null;
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "addBiometricDocuments", "Before Creating UUIN " + regId);
 		String fileRefId = UUIDUtils
 				.getUUID(UUIDUtils.NAMESPACE_OID,
-						docType.get(FILE_NAME_ATTRIBUTE).asText() + SPLITTER + DateUtils.getUTCCurrentDateTime())
+						regId + SPLITTER + DateUtils.getUTCCurrentDateTime())
 				.toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
 
 		long decodeStartTime = System.currentTimeMillis();
@@ -793,7 +794,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 
 		addDocuments(uinHashwithSalt, convertToBytes(requestDTO.getIdentity()), requestDTO.getDocuments(),
-				uinObject.getUinRefId(), docList, bioList, isDraft);
+				uinObject.getUinRefId(), docList, bioList, isDraft, uinObject.getRegId());
 
 		docList.stream().forEach(doc -> uinObject.getDocuments().stream()
 				.filter(docObj -> StringUtils.equals(doc.getDoccatCode(), docObj.getDoccatCode())).forEach(docObj -> {
