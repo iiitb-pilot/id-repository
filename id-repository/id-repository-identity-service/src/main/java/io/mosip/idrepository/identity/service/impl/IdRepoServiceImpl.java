@@ -74,16 +74,8 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -380,10 +372,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			JsonNode docType, boolean isDraft, int index, String regId) throws IdRepoAppException {
 		byte[] data = null;
 		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "addBiometricDocuments", "Before Creating UUIN " + regId);
-		String fileRefId = UUIDUtils
-				.getUUID(UUIDUtils.NAMESPACE_OID,
-						regId + SPLITTER + DateUtils.getUTCCurrentDateTime())
-				.toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
+		String fileRefId = UUID.randomUUID().toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
 
 		long decodeStartTime = System.currentTimeMillis();
 		data = CryptoUtil.decodeURLSafeBase64(doc.getValue());
