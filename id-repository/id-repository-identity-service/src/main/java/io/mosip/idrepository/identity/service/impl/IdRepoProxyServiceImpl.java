@@ -288,6 +288,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				throw new IdRepoAppException(RECORD_EXISTS);
 			}
 			Uin uinEntity = service.addIdentity(request, uin);
+			throw new DataAccessException(DATABASE_ACCESS_ERROR, e);
 			notify(uin, null, null, false, request.getRequest().getRegistrationId());
 			return constructIdResponse(this.id.get(CREATE), uinEntity, null);
 		} catch (IdRepoAppException e) {
