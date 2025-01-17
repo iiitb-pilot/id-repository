@@ -62,17 +62,17 @@ public class AnonymousProfileHelper {
 	private byte[] oldUinData;
 
 	private byte[] newUinData;
-	
+
 	private String regId;
 
 	private String oldCbeff;
 
 	private String newCbeff;
-	
+
 	private String uinHash;
-	
+
 	private String oldCbeffRefId;
-	
+
 	private String newCbeffRefId;
 	
 	@PostConstruct
@@ -105,7 +105,8 @@ public class AnonymousProfileHelper {
 					newDocList = List.of(new DocumentsDTO(IdentityIssuanceProfileBuilder.getIdentityMapping()
 							.getIdentity().getIndividualBiometrics().getValue(), newCbeff));
 //				String id = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, regId + SPLITTER + DateUtils.getUTCCurrentDateTime()).toString();
-				String id = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, regId).toString();
+//				String id = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, regId).toString();
+				String id = UUID.randomUUID().toString();
 				mosipLogger.info(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper", "buildAndsaveProfile",
 						"Before Anonymous profile primary key " + id + " for regId " + regId);
 				IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder()
