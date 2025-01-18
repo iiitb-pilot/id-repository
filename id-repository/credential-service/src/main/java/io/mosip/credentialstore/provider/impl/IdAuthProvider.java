@@ -114,8 +114,6 @@ public class IdAuthProvider extends CredentialProvider {
 				}else {
 					valueStr=mapper.writeValueAsString(value);
 				}
-				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-						"Attribute name (" + attributeName + ") value - " + valueStr);
 				if (allowedKycDto.isEncrypted()) {
 					ZkDataAttribute zkDataAttribute=new ZkDataAttribute();
 					zkDataAttribute.setIdentifier(attributeName);
