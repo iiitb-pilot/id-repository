@@ -20,6 +20,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
 import io.mosip.idrepository.core.dto.IdRequestByIdDTO;
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -373,6 +374,8 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 		try {
 			return uinValidator.validateId(uin);
 		} catch (InvalidIDException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REQUEST_VALIDATOR,
+					"Error While Validating UIN " + ExceptionUtils.getStackTrace(e));
 			return false;
 		}
 	}
