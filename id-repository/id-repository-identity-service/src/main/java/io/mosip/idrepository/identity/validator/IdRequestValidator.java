@@ -371,13 +371,13 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	public boolean validateUin(String uin) throws IdRepoAppException {
-		try {
+//		try {
 			return uinValidator.validateId(uin);
-		} catch (InvalidIDException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, "THAMARAIKANNAN " + uin,
-					"Error While Validating UIN " + ExceptionUtils.getStackTrace(e));
-			return false;
-		}
+//		} catch (InvalidIDException e) {
+//			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, "THAMARAIKANNAN " + uin,
+//					"Error While Validating UIN " + ExceptionUtils.getStackTrace(e));
+//			return false;
+//		}
 	}
 
 	/**
