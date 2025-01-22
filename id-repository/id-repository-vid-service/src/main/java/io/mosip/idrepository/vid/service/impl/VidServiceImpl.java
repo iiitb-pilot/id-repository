@@ -314,7 +314,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 					"\n" + e.getMessage());
 			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorText());
 		} catch (RestServiceException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID, e.getErrorText() + ExceptionUtils.getStackTrace(e));
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, "THAMARAIKANNAN", e.getErrorText() + ExceptionUtils.getStackTrace(e));
 			throw new IdRepoAppException(VID_GENERATION_FAILED);
 		}
 	}
