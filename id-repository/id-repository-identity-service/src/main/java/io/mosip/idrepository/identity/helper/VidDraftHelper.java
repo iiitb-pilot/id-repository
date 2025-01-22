@@ -58,7 +58,7 @@ public class VidDraftHelper {
 				return vidResponse.getResponse().get("VID");
 			}
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), "VidDraftHelper", "generateDraftVid", ExceptionUtils.getStackTrace(e));
+			mosipLogger.error(IdRepoSecurityManager.getUser(), "VidDraftHelper", "THAMARAIKANNAN generateDraftVid " + uin, ExceptionUtils.getStackTrace(e));
 			throw new IdRepoAppException(VID_GENERATION_FAILED);
 		}
 		return null;
@@ -80,7 +80,7 @@ public class VidDraftHelper {
 				this.restHelper.requestSync(restRequest);
 			}
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), "VidDraftHelper", "activateDraftVid", ExceptionUtils.getStackTrace(e));
+			mosipLogger.error(IdRepoSecurityManager.getUser(), "VidDraftHelper", "THAMARAIKANNAN activateDraftVid" + draftVid, ExceptionUtils.getStackTrace(e));
 			throw new IdRepoAppException(VID_GENERATION_FAILED);
 		}
 	}
