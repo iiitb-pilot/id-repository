@@ -574,8 +574,13 @@ public class IdRepoController {
 	}
 
 	private IdType getIdType(String id) throws IdRepoAppException {
-		if (validator.validateUin(id))
-			return IdType.UIN;
+		try {
+			if (validator.validateUin(id))
+				return IdType.UIN;
+		} catch (Exception e) {
+
+		}
+
 		if (validator.validateVid(id))
 			return IdType.VID;
 		return IdType.ID;
