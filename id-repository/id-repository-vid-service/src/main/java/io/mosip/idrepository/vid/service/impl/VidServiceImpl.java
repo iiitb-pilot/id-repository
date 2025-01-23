@@ -349,7 +349,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 					&& errorList.get(0).getErrorCode().equals(NO_RECORD_FOUND.getErrorCode())) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CHECK_UIN_STATUS,
 						"throwing no record found");
-				throw new IdRepoAppException(NO_RECORD_FOUND);
+				throw new IdRepoAppException(NO_RECORD_FOUND.getErrorCode(), NO_RECORD_FOUND.getErrorMessage() + " check UIN Status" );
 			} else {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CHECK_UIN_STATUS,
 						"throwing UIN_RETRIEVAL_FAILED");
@@ -392,7 +392,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			} else {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
 						THROWING_NO_RECORD_FOUND_VID);
-				throw new IdRepoAppException(NO_RECORD_FOUND);
+				throw new IdRepoAppException(NO_RECORD_FOUND.getErrorCode(), NO_RECORD_FOUND.getErrorMessage() + " RetriveUIN ByVid" );
 			}
 		} catch (IdRepoAppUncheckedException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
@@ -476,7 +476,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			if (Objects.isNull(vidObject)) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, UPDATE_VID,
 						THROWING_NO_RECORD_FOUND_VID);
-				throw new IdRepoAppException(NO_RECORD_FOUND);
+				throw new IdRepoAppException(NO_RECORD_FOUND.getErrorCode(), NO_RECORD_FOUND.getErrorMessage() + " updateVid" );
 			}
 			checkStatus(vidObject.getStatusCode());
 			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
@@ -590,7 +590,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			if (Objects.isNull(vidObject)) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, REGENERATE_VID,
 						THROWING_NO_RECORD_FOUND_VID);
-				throw new IdRepoAppException(NO_RECORD_FOUND);
+				throw new IdRepoAppException(NO_RECORD_FOUND.getErrorCode(), NO_RECORD_FOUND.getErrorMessage() + " regenerateVid" );
 			}
 			VidPolicy policy = policyProvider.getPolicy(vidObject.getVidTypeCode());
 			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
@@ -703,7 +703,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		} else {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, "deactivateVIDsForUIN",
 					THROWING_NO_RECORD_FOUND_VID);
-			throw new IdRepoAppException(NO_RECORD_FOUND);
+			throw new IdRepoAppException(NO_RECORD_FOUND.getErrorCode(), NO_RECORD_FOUND.getErrorMessage() + " appliyVidStatus" );
 		}
 	}
 

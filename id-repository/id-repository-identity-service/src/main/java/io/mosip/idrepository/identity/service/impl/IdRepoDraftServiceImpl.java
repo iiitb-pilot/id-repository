@@ -186,7 +186,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 					} else {
 						idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT,
 								"UIN NOT EXIST");
-						throw new IdRepoAppException(NO_RECORD_FOUND);
+						throw new IdRepoAppException(NO_RECORD_FOUND.getErrorCode(), NO_RECORD_FOUND.getErrorMessage() + " createDraft" );
 					}
 				} else {
 					newDraft = new UinDraft();
@@ -273,7 +273,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			} else {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, UPDATE_DRAFT,
 						"RID NOT FOUND IN DB");
-				throw new IdRepoAppException(NO_RECORD_FOUND);
+				throw new IdRepoAppException(NO_RECORD_FOUND.getErrorCode(), NO_RECORD_FOUND.getErrorMessage() + " updateDraft" );
 			}
 		} catch (JSONException | IOException | InvalidJsonException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, UPDATE_DRAFT, e.getMessage());
@@ -407,7 +407,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			if (uinDraft.isEmpty()) {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
 						DRAFT_RECORD_NOT_FOUND);
-				throw new IdRepoAppException(NO_RECORD_FOUND);
+				throw new IdRepoAppException(NO_RECORD_FOUND.getErrorCode(), NO_RECORD_FOUND.getErrorMessage() + " PublishDraft" );
 			} else {
 				UinDraft draft = uinDraft.get();
 				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
@@ -533,7 +533,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			} else {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, UPDATE_DRAFT,
 						"RID NOT FOUND IN DB");
-				throw new IdRepoAppException(NO_RECORD_FOUND);
+				throw new IdRepoAppException(NO_RECORD_FOUND.getErrorCode(), NO_RECORD_FOUND.getErrorMessage() + " Discard Draft" );
 			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, DISCARD_DRAFT,
@@ -577,7 +577,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			} else {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
 						DRAFT_RECORD_NOT_FOUND);
-				throw new IdRepoAppException(NO_RECORD_FOUND);
+				throw new IdRepoAppException(NO_RECORD_FOUND.getErrorCode(), NO_RECORD_FOUND.getErrorMessage() + " getDraft" );
 			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
@@ -601,7 +601,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				} else {
 					idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
 							DRAFT_RECORD_NOT_FOUND);
-					throw new IdRepoAppException(NO_RECORD_FOUND);
+					throw new IdRepoAppException(NO_RECORD_FOUND.getErrorCode(), NO_RECORD_FOUND.getErrorMessage() + " Extract Biometrics" );
 				}
 			} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,

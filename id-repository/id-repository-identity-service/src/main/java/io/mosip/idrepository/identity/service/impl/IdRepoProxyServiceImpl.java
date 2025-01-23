@@ -351,7 +351,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			if (Objects.nonNull(uinHash)) {
 				return retrieveIdentityByUinHash(type, uinHash, extractionFormats);
 			} else {
-				throw new IdRepoAppException(NO_RECORD_FOUND);
+				throw new IdRepoAppException(NO_RECORD_FOUND.getErrorCode(), NO_RECORD_FOUND.getErrorMessage() + " RetriveIdentityByRid" );
 			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
@@ -540,7 +540,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			} else {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
 						NO_RECORD_FOUND.getErrorMessage());
-				throw new IdRepoAppException(NO_RECORD_FOUND);
+				throw new IdRepoAppException(NO_RECORD_FOUND.getErrorCode(), NO_RECORD_FOUND.getErrorMessage() + " updateIdentity" );
 			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, UPDATE_IDENTITY, e.getMessage());
@@ -572,7 +572,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			default:
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getRidByIndividualId",
 						"NO_RECORD_FOUND");
-				throw new IdRepoAppException(NO_RECORD_FOUND);
+				throw new IdRepoAppException(NO_RECORD_FOUND.getErrorCode(), NO_RECORD_FOUND.getErrorMessage() + " getRidByIndividualId" );
 		}
 	}
 
@@ -589,7 +589,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		} else {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "retrieveRidByUin",
 					"NO_RECORD_FOUND");
-			throw new IdRepoAppException(NO_RECORD_FOUND);
+			throw new IdRepoAppException(NO_RECORD_FOUND.getErrorCode(), NO_RECORD_FOUND.getErrorMessage() + " RetrieveRidbyUin" );
 		}
 	}
 
@@ -664,7 +664,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			default:
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getRidByIndividualId",
 						"NO_RECORD_FOUND");
-				throw new IdRepoAppException(NO_RECORD_FOUND);
+				throw new IdRepoAppException(NO_RECORD_FOUND.getErrorCode(), NO_RECORD_FOUND.getErrorMessage() + " getUinHash" );
 		}
 	}
 
@@ -786,7 +786,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			if (Objects.nonNull(entity)) {
 				return retrieveIdentityByUinHash(type, entity.getUinHash(), extractionFormats);
 			} else {
-				throw new IdRepoAppException(NO_RECORD_FOUND);
+				throw new IdRepoAppException(NO_RECORD_FOUND.getErrorCode(), NO_RECORD_FOUND.getErrorMessage() + " retrieveIdentityByHandle" );
 			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,

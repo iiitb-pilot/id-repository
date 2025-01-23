@@ -467,7 +467,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		} else {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
 					NO_RECORD_FOUND.getErrorMessage());
-			throw new IdRepoAppException(NO_RECORD_FOUND);
+			throw new IdRepoAppException(NO_RECORD_FOUND.getErrorCode(), NO_RECORD_FOUND.getErrorMessage() + " retrieveIdentity" );
 		}
 	}
 
