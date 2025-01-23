@@ -251,7 +251,7 @@ public class VidController {
 		} catch (InvalidIDException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_CONTROLLER, RETRIEVE_VID_BY_UIN, e.getMessage());
 			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
-					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
+					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN + " retrieveVidsByUin " + uin));
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.RETRIEVE_UIN_VID, uin, IdType.UIN, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_CONTROLLER, RETRIEVE_VID_BY_UIN, e.getMessage());
@@ -392,7 +392,7 @@ public class VidController {
 			auditHelper.auditError(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.DEACTIVATE_VID, uin, IdType.UIN, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_CONTROLLER, DEACTIVATE_VID, e.getMessage());
 			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
-					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
+					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN + " deactivateVIDsForUIN " + request.getId()));
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.DEACTIVATE_VID, uin, IdType.UIN, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_CONTROLLER, DEACTIVATE_VID, e.getMessage());
@@ -437,7 +437,7 @@ public class VidController {
 			auditHelper.auditError(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.REACTIVATE_VID, uin, IdType.UIN, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_CONTROLLER, DEACTIVATE_VID, e.getMessage());
 			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
-					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
+					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN + " reactivateVIDsForUIN " + request.getId()));
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.REACTIVATE_VID, uin, IdType.UIN, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_CONTROLLER, DEACTIVATE_VID, e.getMessage());
