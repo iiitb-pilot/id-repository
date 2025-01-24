@@ -346,7 +346,7 @@ public class IdRepoController {
 			if (!validator.validateUin(uin)) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY, "Invalid uin");
 				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
-						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
+						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN + " updateIdentity " + uin));
 			}
 			return new ResponseEntity<>(idRepoService.updateIdentity(request, uin), HttpStatus.OK);
 		} catch (IdRepoDataValidationException e) {

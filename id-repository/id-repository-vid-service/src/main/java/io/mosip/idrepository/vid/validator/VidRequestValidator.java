@@ -161,7 +161,7 @@ public class VidRequestValidator extends BaseIdRepoValidator implements Validato
 				mosipLogger.error(IdRepoSecurityManager.getUser(), VID_REQUEST_VALIDATOR, "validateUin",
 						"\n" + e.getMessage());
 				errors.rejectValue(REQUEST, INVALID_INPUT_PARAMETER.getErrorCode(),
-						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
+						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN + " validateUin " + uin + " message : " + e.getMessage()));
 			}
 		}
 	}
