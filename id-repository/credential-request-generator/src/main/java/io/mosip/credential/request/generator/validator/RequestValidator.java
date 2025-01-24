@@ -37,7 +37,7 @@ public class RequestValidator {
     private void validateDataToCheckNullOrEmpty(String variableValue, String variableName) throws IdRepoAppException {
         if (StringUtils.isBlank(variableValue)) {
             throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
-                    String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), variableName));
+                    String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), variableName + " validateDataToCheckNullOrEmpty " + variableValue));
         }
     }
 }
