@@ -19,6 +19,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.idrepository.core.dto.IdRequestByIdDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -132,6 +133,8 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	@Autowired
 	private IdRepoServiceHelper idRepoServiceHelper;
 
+	@Autowired
+	private ObjectMapper mapper;
 
 	@PostConstruct
 	public void init() {
@@ -224,6 +227,8 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 		try {
 			if (Objects.nonNull(request)) {
 				Map<String, Object> requestMap = idRepoServiceHelper.convertToMap(request);
+				mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateRequest",
+						mapper.writeValueAsString(requestMap));
 				if (!(requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH)))) {
 					if (method.equals(CREATE)) {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateRequest",
@@ -285,6 +290,9 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 					VALIDATE_REQUEST + " InvalidIdSchemaException | IdObjectIOException " + e.getMessage());
 			errors.rejectValue(REQUEST, ID_OBJECT_PROCESSING_FAILED.getErrorCode(),
 					ID_OBJECT_PROCESSING_FAILED.getErrorMessage());
+		} catch (Exception ex) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REQUEST_VALIDATOR,
+					VALIDATE_REQUEST + " Exception " + ex.getMessage());
 		}
 	}
 

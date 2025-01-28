@@ -129,6 +129,7 @@ public class IdRepoDraftController {
 			@ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
 			request.getRequest().setRegistrationId(registrationId);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "updateDraft", registrationId);
 			validator.validateRequest(request.getRequest(), errors, "update");
 			DataValidationUtil.validate(errors);
 			return new ResponseEntity<>(draftService.updateDraft(registrationId, request), HttpStatus.OK);
