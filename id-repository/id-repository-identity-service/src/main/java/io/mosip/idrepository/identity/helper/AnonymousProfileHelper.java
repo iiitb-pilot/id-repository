@@ -121,6 +121,8 @@ public class AnonymousProfileHelper {
 				mosipLogger.debug(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper", "buildAndsaveProfile",
 						"Total time taken to complete anonymousProfileRepo save of " + regId + " (" + (System.currentTimeMillis() - startTime) + "ms)");
 			} catch (Exception e) {
+				mosipLogger.debug(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper", "buildAndsaveProfile",
+						regId + " (" + e.getMessage() + ")");
 				mosipLogger.warn(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper", "buildAndsaveProfile",
 						ExceptionUtils.getStackTrace(e));
 			}
