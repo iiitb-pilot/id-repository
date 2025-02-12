@@ -512,11 +512,17 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	@Override
 	public IdResponseDTO extractBiometrics(String registrationId, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
+		Long startTime = System.currentTimeMillis();
+		idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
+				"Entering Bio Extraction for RID " + registrationId + (System.currentTimeMillis()-startTime) + " ms");
+
 		if (!extractionFormats.isEmpty())
 			try {
 				Optional<UinDraft> draftOpt = uinDraftRepo.findByRegId(registrationId);
+				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
+						"Record Found in Drafty Table for RID " + registrationId + (System.currentTimeMillis()-startTime) + " ms");
 				if (draftOpt.isPresent()) {
-					extractBiometricsDraft(extractionFormats, draftOpt.get());
+					extractBiometricsDraft(extractionFormats, draftOpt.get(), startTime, registrationId);
 				} else {
 					idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
 							DRAFT_RECORD_NOT_FOUND);
@@ -530,13 +536,22 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		return constructIdResponse(null, DRAFTED, null, null);
 	}
 
-	private void extractBiometricsDraft(Map<String, String> extractionFormats, UinDraft draft)
+	private void extractBiometricsDraft(Map<String, String> extractionFormats, UinDraft draft, Long startTime, String registrationId)
 			throws IdRepoAppException {
 		try {
 			String uinHash = draft.getUinHash().split("_")[1];
+			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
+					"Finding uinHAsh for RID " + registrationId + (System.currentTimeMillis()-startTime) + " ms");
+
 			for (UinBiometricDraft bioDraft : draft.getBiometrics()) {
+				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
+						"extractionFormats value are for RID " + registrationId + " " + (new ObjectMapper()).writeValueAsString(extractionFormats) + "" + (System.currentTimeMillis()-startTime) + " ms");
 				deleteExistingExtractedBioData(extractionFormats, uinHash, bioDraft);
+				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
+						"Deleting Existing Record for RID " + registrationId + (System.currentTimeMillis()-startTime) + " ms");
 				extractAndGetCombinedCbeff(uinHash, bioDraft.getBioFileId(), extractionFormats);
+				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
+						"extractAndGetCombinedCbeff for RID " + registrationId + (System.currentTimeMillis()-startTime) + " ms");
 			}
 		} catch (Exception e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
