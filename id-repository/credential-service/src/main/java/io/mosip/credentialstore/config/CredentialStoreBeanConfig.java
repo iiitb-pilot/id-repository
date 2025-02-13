@@ -114,11 +114,16 @@ public class CredentialStoreBeanConfig {
 	@Qualifier("plainRestTemplate")
 	private RestTemplate restTemplate;
 
+	private VariableResolverFactory functionFactory;
+
 	@Bean("varres")
 	public VariableResolverFactory getVariableResolverFactory() {
-		String mvelExpression = restTemplate.getForObject(configServerFileStorageURL + mvelFile, String.class);
-		VariableResolverFactory functionFactory = new MapVariableResolverFactory();
-		MVEL.eval(mvelExpression, functionFactory);
+		if(functionFactory ==null) {
+			String mvelExpression = restTemplate.getForObject(configServerFileStorageURL + mvelFile, String.class);
+			functionFactory = new MapVariableResolverFactory();
+			MVEL.eval(mvelExpression, functionFactory);
+		}
+
 		return functionFactory;
 	}
 
