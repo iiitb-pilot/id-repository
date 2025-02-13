@@ -44,6 +44,7 @@ public class CredentialStoreBeanConfig {
 		return new IdRepoSecurityManager();
 	}
 
+	private CredentialProvider verCredProvider;
 	/**
 	 * Gets the id auth provider.
 	 *
@@ -84,8 +85,10 @@ public class CredentialStoreBeanConfig {
 	 */
 	@Bean("vercred")
 	public CredentialProvider getVerCredProvider() {
-
-		return new VerCredProvider();
+		if(verCredProvider == null) {
+			verCredProvider = new VerCredProvider();
+		}
+		return verCredProvider;
 	}
 
 	@Bean
