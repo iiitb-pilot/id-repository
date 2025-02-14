@@ -83,7 +83,7 @@ public interface CredentialRepositary<T extends CredentialEntity, E> extends Bas
 
 	@Transactional
 	@Query(value = "update credential_transaction ct set statusCode = 'REPROCESS', batch_id =:batchId where ct.id in (select ct1.id from credential_transaction ct1 "
-			+ " WHERE ct1.status_code in:statusCode ORDER BY cr_dtimes LIMIT :pageSize)", nativeQuery = true)
+			+ " WHERE ct1.status_code in:statusCodes ORDER BY cr_dtimes LIMIT :pageSize)", nativeQuery = true)
 	Integer updateBatchIdByStatusCodes(@Param("batchId")String batchId, @Param("statusCodes")String[] statusCodes, @Param("pageSize") int pageSize);
 
 }
