@@ -53,8 +53,13 @@ public interface CredentialRepositary<T extends CredentialEntity, E> extends Bas
 
 	@Transactional
 	@Query(value = "SELECT * FROM credential_transaction ct"
-			+ " WHERE ct.status_code=:statusCode ORDER BY cr_dtimes FOR UPDATE SKIP LOCKED LIMIT :pageSize", nativeQuery = true)
-	List<CredentialEntity> findCredentialByStatusCode(@Param("statusCode")String statusCode, @Param("pageSize") int pageSize);
+			+ " WHERE ct.batch_id=:batchId ORDER BY cr_dtimes FOR UPDATE SKIP LOCKED", nativeQuery = true)
+	List<CredentialEntity> findCredentialByStatusCode(@Param("batchId")String batchId);
+
+	@Transactional
+	@Query(value = "update credential_transaction ct set batch_id =:batchId where ct.id in (select ct1.id from credential_transaction ct1 "
+			+ " WHERE ct1.status_code=:statusCode and ct1.batch_id is null ORDER BY cr_dtimes LIMIT :pageSize)", nativeQuery = true)
+	Integer updateBatchIdByStatusCode(@Param("batchId")String batchId, @Param("statusCode")String statusCode, @Param("pageSize") int pageSize);
 
 	/**
 	 * Find credential by status codes.

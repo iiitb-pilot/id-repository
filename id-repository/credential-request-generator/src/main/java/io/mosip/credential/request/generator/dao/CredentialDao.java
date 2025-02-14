@@ -49,7 +49,9 @@ public class CredentialDao {
                 "Inside getCredentials() method");
 
         long startTime = System.currentTimeMillis();
-        List<CredentialEntity> credentialEntities = crdentialRepo.findCredentialByStatusCode(status, pageSize);
+        List<CredentialEntity> credentialEntities = new ArrayList<>();
+        if(crdentialRepo.updateBatchIdByStatusCode(batchId, status, pageSize) > 0)
+            credentialEntities = crdentialRepo.findCredentialByStatusCode(batchId);
         long endTime = System.currentTimeMillis();
 
         LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
