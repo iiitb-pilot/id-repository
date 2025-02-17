@@ -79,17 +79,6 @@ public class CredentialEntity {
 	@Column(name = "del_dtimes")
 	private LocalDateTime deletedDateTime;
 
-	@Column(name = "batch_id")
-	private String batchId;
-
-	public String getBatchId() {
-		return batchId;
-	}
-
-	public void setBatchId(String batchId) {
-		this.batchId = batchId;
-	}
-
 	/**
 	 * Gets the request id.
 	 *

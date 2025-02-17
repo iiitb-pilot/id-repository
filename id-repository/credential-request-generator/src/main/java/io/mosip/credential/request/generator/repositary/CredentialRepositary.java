@@ -8,7 +8,6 @@ import javax.persistence.QueryHint;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
@@ -54,14 +53,8 @@ public interface CredentialRepositary<T extends CredentialEntity, E> extends Bas
 
 	@Transactional
 	@Query(value = "SELECT * FROM credential_transaction ct"
-			+ " WHERE ct.batch_id=:batchId ORDER BY cr_dtimes FOR UPDATE SKIP LOCKED", nativeQuery = true)
-	List<CredentialEntity> findCredentialByStatusCode(@Param("batchId")String batchId);
-
-	@Modifying
-	@Transactional
-	@Query(value = "update credential_transaction ct set batch_id =:batchId where ct.id in (select ct1.id from credential_transaction ct1 "
-			+ " WHERE ct1.status_code=:statusCode and ct1.batch_id is null ORDER BY ct1.cr_dtimes LIMIT :pageSize)", nativeQuery = true)
-	int updateBatchIdByStatusCode(@Param("batchId")String batchId, @Param("statusCode")String statusCode, @Param("pageSize") int pageSize);
+			+ " WHERE ct.status_code=:statusCode ORDER BY cr_dtimes FOR UPDATE SKIP LOCKED LIMIT :pageSize", nativeQuery = true)
+	List<CredentialEntity> findCredentialByStatusCode(@Param("statusCode")String statusCode, @Param("pageSize") int pageSize);
 
 	/**
 	 * Find credential by status codes.
@@ -79,14 +72,6 @@ public interface CredentialRepositary<T extends CredentialEntity, E> extends Bas
 
 	@Transactional
 	@Query(value = "SELECT * FROM credential_transaction ct"
-			+ " WHERE ct.batch_id=:batchId ORDER BY cr_dtimes FOR UPDATE SKIP LOCKED", nativeQuery = true)
-	List<CredentialEntity> findCredentialByStatusCodes(@Param("batchId")String batchId);
-
-
-	@Modifying
-	@Transactional
-	@Query(value = "update credential_transaction ct set status_code = 'REPROCESS', batch_id =:batchId where ct.id in (select ct1.id from credential_transaction ct1 "
-			+ " WHERE ct1.status_code in :statusCodes ORDER BY cr_dtimes LIMIT :pageSize)", nativeQuery = true)
-	int updateBatchIdByStatusCodes(@Param("batchId")String batchId, @Param("statusCodes")String[] statusCodes, @Param("pageSize") int pageSize);
-
+			+ " WHERE ct.status_code in :statusCodes ORDER BY cr_dtimes FOR UPDATE SKIP LOCKED LIMIT :pageSize", nativeQuery = true)
+	List<CredentialEntity> findCredentialByStatusCodes(@Param("statusCodes")String[] statusCodes, @Param("pageSize") int pageSize);
 }
