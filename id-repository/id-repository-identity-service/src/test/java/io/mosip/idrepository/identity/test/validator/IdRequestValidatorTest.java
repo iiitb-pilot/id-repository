@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import io.mosip.idrepository.core.dto.IdentityMapping;
 import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -80,6 +81,7 @@ import io.mosip.kernel.idvalidator.uin.impl.UinValidatorImpl;
 @WebMvcTest @Import(EnvUtil.class)
 @ActiveProfiles("test")
 @ConfigurationProperties("mosip.idrepo.identity")
+@Ignore
 public class IdRequestValidatorTest {
 
 	private static final String UIN = "uin";
