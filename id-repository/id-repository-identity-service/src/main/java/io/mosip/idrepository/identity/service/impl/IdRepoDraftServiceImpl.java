@@ -53,6 +53,7 @@ import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.skyscreamer.jsonassert.JSONCompareResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
@@ -77,23 +78,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.CREATE_DRAFT;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.DISCARD_DRAFT;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.DOT;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.DRAFTED;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.DRAFT_RECORD_NOT_FOUND;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.EXCLUDED_ATTRIBUTE_LIST;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.GENERATE_UIN;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.GET_DRAFT;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.ID_REPO_DRAFT_SERVICE_IMPL;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.MOSIP_KERNEL_IDREPO_JSON_PATH;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.PUBLISH_DRAFT;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.UPDATE_DRAFT;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.VERIFIED_ATTRIBUTES;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.*;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
@@ -120,6 +105,9 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 
 	@Value("${" + UIN_REFID + "}")
 	private String uinRefId;
+
+	@Value("${" + UIN_DATA_REFID + "}")
+	private String uinDataRefId;
 
 	@Autowired
 	private UinDraftRepo uinDraftRepo;
@@ -150,6 +138,10 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	
 	@Value("${mosip.idrepo.create-identity.enable-force-merge:false}")
 	private boolean isForceMergeEnabled;
+
+	@Lazy
+	@Autowired
+	private transient IdRepoSecurityManager securityManager;
 	
 	@Override
 	public IdResponseDTO createDraft(String registrationId, String uin) throws IdRepoAppException {
@@ -163,6 +155,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 					uin = String.valueOf(map.get("UIN"));
 				}
 				if (Objects.nonNull(uin)) {
+					idrepoDraftLogger.info("uin is not null in create draft. RID : " + registrationId + ", uin : " + uin);
 					Optional<Uin> uinObjectOptional = super.uinRepo.findByUinHash(super.getUinHash(uin));
 					if (uinObjectOptional.isPresent()) {
 						Uin uinObject = uinObjectOptional.get();
@@ -171,6 +164,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 						newDraft.setRegId(registrationId);
 						newDraft.setUin(super.getUinToEncrypt(uin));
 					} else {
+						idrepoDraftLogger.info("uin is null in create draft. RID : " + registrationId);
 						idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT,
 								"UIN NOT EXIST");
 						throw new IdRepoAppException(NO_RECORD_FOUND);
@@ -189,6 +183,9 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				newDraft.setCreatedBy(IdRepoSecurityManager.getUser());
 				newDraft.setCreatedDateTime(DateUtils.getUTCCurrentDateTime());
 				uinDraftRepo.save(newDraft);
+				idrepoDraftLogger.info("uinData in uinDraft for RID : "
+						+ registrationId + ", data : "
+						+ new String(getDecryptedDataBeforeSave(newDraft.getUinData())));
 				return constructIdResponse(null, DRAFTED, null, null);
 			} else {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT, "RID ALREADY EXIST");
@@ -228,10 +225,14 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	@Override
 	public IdResponseDTO updateDraft(String registrationId, IdRequestDTO request) throws IdRepoAppException {
 		try {
+			idrepoDraftLogger.info("updateDraft() method called. registrationId : " + registrationId);
+			idrepoDraftLogger.info("identityObject from request for RID : " + registrationId + ", data : " +
+					getUINDataFromRequestAsJSONString(request.getRequest().getIdentity()));
 			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(registrationId);
 			if (uinDraft.isPresent()) {
 				UinDraft draftToUpdate = uinDraft.get();
 				if (Objects.isNull(draftToUpdate.getUinData())) {
+					idrepoDraftLogger.info("draftToUpdate uinData is null for RID : " + registrationId);
 					ObjectNode identityObject = mapper.convertValue(request.getRequest().getIdentity(), ObjectNode.class);
 					identityObject.putPOJO(VERIFIED_ATTRIBUTES, request.getRequest().getVerifiedAttributes());
 					byte[] uinData = super.convertToBytes(request.getRequest().getIdentity());
@@ -241,11 +242,17 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 					draftToUpdate.setUpdatedBy(IdRepoSecurityManager.getUser());
 					draftToUpdate.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
 					uinDraftRepo.save(draftToUpdate);
+					idrepoDraftLogger.info("updated uinData : " + getUINDataFromDBAsJSONString(draftToUpdate.getUinData()));
 				} else {
+					idrepoDraftLogger.info("draftToUpdate uinData is not null for RID : " + registrationId);
+					idrepoDraftLogger.info("uinData before update for RID : " +
+							registrationId + ", data : " + getUINDataFromDBAsJSONString(draftToUpdate.getUinData()));
 					updateDemographicData(request, draftToUpdate);
 					updateDocuments(request.getRequest(), draftToUpdate);
 
 					uinDraftRepo.save(draftToUpdate);
+					idrepoDraftLogger.info("updated uinData for RID : "
+							+ registrationId + ", data : " + getUINDataFromDBAsJSONString(draftToUpdate.getUinData()));
 				}
 			} else {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, UPDATE_DRAFT,
@@ -632,6 +639,24 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			}
 		});
 		return attributeList;
+	}
+
+	private String getUINDataFromDBAsJSONString(byte[] data) {
+		Configuration configuration = Configuration.builder().jsonProvider(new JacksonJsonProvider())
+				.mappingProvider(new JacksonMappingProvider()).build();
+		DocumentContext inputData = JsonPath.using(configuration).parse(new String(data));
+		return inputData.jsonString();
+	}
+
+	private String getUINDataFromRequestAsJSONString(Object requestData) {
+		Configuration configuration = Configuration.builder().jsonProvider(new JacksonJsonProvider())
+				.mappingProvider(new JacksonMappingProvider()).build();
+		DocumentContext inputDataFromReq = JsonPath.using(configuration).parse(requestData);
+		return inputDataFromReq.jsonString();
+	}
+
+	private byte[] getDecryptedDataBeforeSave(byte[] encryptedDataBeforeSave) throws IdRepoAppException {
+		return securityManager.decrypt(encryptedDataBeforeSave, uinDataRefId);
 	}
 
 }

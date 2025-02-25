@@ -19,6 +19,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.idrepository.core.dto.IdRequestByIdDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -224,6 +225,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void validateRequest(Object request, Errors errors, String method) {
+		mosipLogger.info("validateRequest() method called. method : " + method);
 		try {
 			if (Objects.nonNull(request)) {
 				Map<String, Object> requestMap = idRepoServiceHelper.convertToMap(request);
@@ -245,6 +247,8 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 					if (!errors.hasErrors()) {
 						String schemaVersion;
 						if (requestMap.get(ROOT_PATH) != null) {
+							mosipLogger.info("identity object from request in validate method "
+									+ mapper.writeValueAsString(requestMap.get(ROOT_PATH)));
 							schemaVersion = String
 									.valueOf(((Map<String, Object>) requestMap.get(ROOT_PATH))
 											.get(idRepoServiceHelper.getIdentityMapping().getIdentity().getIDSchemaVersion().getValue()));
@@ -288,9 +292,9 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 					VALIDATE_REQUEST + " InvalidIdSchemaException | IdObjectIOException " + e.getMessage());
 			errors.rejectValue(REQUEST, ID_OBJECT_PROCESSING_FAILED.getErrorCode(),
 					ID_OBJECT_PROCESSING_FAILED.getErrorMessage());
-		} catch (Exception ex) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REQUEST_VALIDATOR,
-					VALIDATE_REQUEST + " Exception " + ex.getMessage());
+		} catch (JsonProcessingException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), "JsonProcessingException occurred : " + e.getMessage());
+			throw new RuntimeException(e);
 		}
 	}
 

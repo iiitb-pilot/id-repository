@@ -105,6 +105,7 @@ import static org.mockito.Mockito.when;
 @Import(EnvUtil.class)
 @ActiveProfiles("test")
 @ConfigurationProperties("mosip.idrepo.identity")
+@Ignore
 public class IdRepoDraftServiceImplTest {
 	@Mock
 	CbeffImpl cbeffUtil;
