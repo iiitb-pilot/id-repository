@@ -13,6 +13,10 @@ import java.util.stream.IntStream;
 
 import javax.annotation.PostConstruct;
 
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.vid.config.VidRepoConfig;
+import io.mosip.kernel.core.logger.spi.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Component;
@@ -36,12 +40,14 @@ import io.mosip.idrepository.core.util.EnvUtil;
  * @author Manoj SP
  */
 @Component
-//@RefreshScope
+@RefreshScope
 public class VidPolicyProvider {
 
 	/** The Constant READ_LIST_OPTIONS. */
 	private static final Configuration READ_LIST_OPTIONS = Configuration.defaultConfiguration()
 			.addOptions(Option.SUPPRESS_EXCEPTIONS, Option.ALWAYS_RETURN_LIST);
+
+	private static final Logger LOGGER = IdRepoLogger.getLogger(VidPolicyProvider.class);
 
 	/** The mapper. */
 	@Autowired
@@ -58,6 +64,8 @@ public class VidPolicyProvider {
 	 */
 	@PostConstruct
 	public void loadPolicyDetails() throws IOException, ProcessingException {
+		LOGGER.info(IdRepoSecurityManager.getUser(), "VidPolicyProvider", "loadPolicyDetails()",
+				"Entering Init of loadPolicyDetails");
 		JsonNode policyJson = mapper.readValue(new URL(EnvUtil.getVidPolicyFileUrl()), JsonNode.class);
 		JsonNode schema = mapper.readValue(new URL(EnvUtil.getVidPolicySchemaUrl()), JsonNode.class);
 		final JsonSchema jsonSchema = JsonSchemaFactory.byDefault().getJsonSchema(schema);

@@ -226,7 +226,7 @@ public class CredentialServiceManager {
 
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
-					e.getMessage());
+					e.getMessage() + "; Exception Stacktrace >>" + ExceptionUtils.getStackTrace(e));
 		}
 	}
 
@@ -402,10 +402,10 @@ public class CredentialServiceManager {
 					String token = tokenIDGenerator.generateTokenID(uin, partnerId);
 					//Given requestId and the handle value is hashed together to generate a unique requestId for handle credential.
 					//Credential issuance status check systems should generate the handle requestId in the same way to get latest issuance status.
-					String handleRequestId = requestId.concat(handleInfoDTO.getHandle());
+					//String handleRequestId = requestId.concat(handleInfoDTO.getHandle()); --requestId null
 					return createCredReqDto(handleInfoDTO.getHandle(), partnerId, null, null,
 							token, handleInfoDTO.getAdditionalData(),
-							securityManager.hash(handleRequestId.getBytes(StandardCharsets.UTF_8)));
+							Objects.nonNull(requestId) ? createHandleRequestId(requestId, handleInfoDTO.getHandle()) : requestId);
 				});
 			}).collect(Collectors.toList());
 			eventRequestsList.addAll(handleRequests);
@@ -414,6 +414,10 @@ public class CredentialServiceManager {
 		sendRequestToCredService(eventRequestsList, isUpdate, credentialRequestResponseConsumer);
 	}
 
+	private String createHandleRequestId(String requestId, String handle) {
+		String handleRequestId = requestId.concat(handle);
+		return securityManager.hash(handleRequestId.getBytes(StandardCharsets.UTF_8));
+	}
 	/**
 	 * Send vid events to cred service.
 	 *

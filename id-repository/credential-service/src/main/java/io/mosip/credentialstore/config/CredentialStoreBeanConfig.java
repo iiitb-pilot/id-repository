@@ -1,5 +1,7 @@
 package io.mosip.credentialstore.config;
 
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.kernel.core.logger.spi.Logger;
 import org.mvel2.MVEL;
 import org.mvel2.integration.VariableResolverFactory;
 import org.mvel2.integration.impl.MapVariableResolverFactory;
@@ -34,6 +36,9 @@ import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 @PropertySource("classpath:bootstrap.properties")
 public class CredentialStoreBeanConfig {
 
+	private static final Logger LOGGER = IdRepoLogger.getLogger(VerCredProvider.class);
+
+
 	@Bean
 	public DummyPartnerCheckUtil dummyPartnerCheckUtil() {
 		return new DummyPartnerCheckUtil();
@@ -44,7 +49,6 @@ public class CredentialStoreBeanConfig {
 		return new IdRepoSecurityManager();
 	}
 
-	private CredentialProvider verCredProvider;
 	/**
 	 * Gets the id auth provider.
 	 *
@@ -52,7 +56,8 @@ public class CredentialStoreBeanConfig {
 	 */
 	@Bean("idauth")
 	public CredentialProvider getIdAuthProvider() {
-
+		LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialStoreBeanConfig", "getIdAuthProvider()",
+				"Entering Init of getIdAuthProvider");
 		return new IdAuthProvider();
 	}
 
@@ -85,10 +90,8 @@ public class CredentialStoreBeanConfig {
 	 */
 	@Bean("vercred")
 	public CredentialProvider getVerCredProvider() {
-		if(verCredProvider == null) {
-			verCredProvider = new VerCredProvider();
-		}
-		return verCredProvider;
+
+		return new VerCredProvider();
 	}
 
 	@Bean
@@ -117,16 +120,13 @@ public class CredentialStoreBeanConfig {
 	@Qualifier("plainRestTemplate")
 	private RestTemplate restTemplate;
 
-	private VariableResolverFactory functionFactory;
-
 	@Bean("varres")
 	public VariableResolverFactory getVariableResolverFactory() {
-		if(functionFactory ==null) {
+		LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialStoreBeanConfig", "getVariableResolverFactory()",
+				"Entering Init of getVariableResolverFactory");
 			String mvelExpression = restTemplate.getForObject(configServerFileStorageURL + mvelFile, String.class);
-			functionFactory = new MapVariableResolverFactory();
+		VariableResolverFactory functionFactory = new MapVariableResolverFactory();
 			MVEL.eval(mvelExpression, functionFactory);
-		}
-
 		return functionFactory;
 	}
 

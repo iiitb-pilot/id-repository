@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import org.hibernate.Interceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -243,16 +244,17 @@ public class VidRepoConfig {
 	@Qualifier("restTemplate")
 	private RestTemplate restTemplate;
 
-	private VariableResolverFactory functionFactory;
+	private static final Logger LOGGER = IdRepoLogger.getLogger(VidRepoConfig.class);
+
 
 	@Bean("mask")
 	public VariableResolverFactory getVariableResolverFactory() {
-		if(functionFactory == null) {
-			String mvelExpression = restTemplate.getForObject(configServerFileStorageURL + mvelFile, String.class);
-			functionFactory = new MapVariableResolverFactory();
-			MVEL.eval(mvelExpression, functionFactory);
-		}
+		LOGGER.info(IdRepoSecurityManager.getUser(), "VidRepoConfig", "getVariableResolverFactory()",
+				"Entering Init of getVariableResolverFactory");
 
+		String mvelExpression = restTemplate.getForObject(configServerFileStorageURL + mvelFile, String.class);
+		VariableResolverFactory functionFactory = new MapVariableResolverFactory();
+			MVEL.eval(mvelExpression, functionFactory);
 		return functionFactory;
 	}
 	
