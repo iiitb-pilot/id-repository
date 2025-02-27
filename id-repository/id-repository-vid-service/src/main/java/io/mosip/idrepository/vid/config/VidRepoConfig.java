@@ -250,7 +250,7 @@ public class VidRepoConfig {
 	@Bean("mask")
 	public VariableResolverFactory getVariableResolverFactory() {
 		LOGGER.info(IdRepoSecurityManager.getUser(), "VidRepoConfig", "getVariableResolverFactory()",
-				"Entering Init of getVariableResolverFactory");
+				"THAMARAIKANNAN - Entering Init of getVariableResolverFactory");
 
 		String mvelExpression = restTemplate.getForObject(configServerFileStorageURL + mvelFile, String.class);
 		VariableResolverFactory functionFactory = new MapVariableResolverFactory();

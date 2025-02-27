@@ -65,7 +65,7 @@ public class VidPolicyProvider {
 	@PostConstruct
 	public void loadPolicyDetails() throws IOException, ProcessingException {
 		LOGGER.info(IdRepoSecurityManager.getUser(), "VidPolicyProvider", "loadPolicyDetails()",
-				"Entering Init of loadPolicyDetails");
+				"THAMARAIKANNAN - Entering Init of loadPolicyDetails");
 		JsonNode policyJson = mapper.readValue(new URL(EnvUtil.getVidPolicyFileUrl()), JsonNode.class);
 		JsonNode schema = mapper.readValue(new URL(EnvUtil.getVidPolicySchemaUrl()), JsonNode.class);
 		final JsonSchema jsonSchema = JsonSchemaFactory.byDefault().getJsonSchema(schema);

@@ -57,7 +57,7 @@ public class CredentialStoreBeanConfig {
 	@Bean("idauth")
 	public CredentialProvider getIdAuthProvider() {
 		LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialStoreBeanConfig", "getIdAuthProvider()",
-				"Entering Init of getIdAuthProvider");
+				"THAMARAIKANNAN - Entering Init of getIdAuthProvider");
 		return new IdAuthProvider();
 	}
 
@@ -90,7 +90,8 @@ public class CredentialStoreBeanConfig {
 	 */
 	@Bean("vercred")
 	public CredentialProvider getVerCredProvider() {
-
+		LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialStoreBeanConfig", "getVerCredProvider()",
+				"THAMARAIKANNAN - Entering Init of getVerCredProvider");
 		return new VerCredProvider();
 	}
 
@@ -123,7 +124,7 @@ public class CredentialStoreBeanConfig {
 	@Bean("varres")
 	public VariableResolverFactory getVariableResolverFactory() {
 		LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialStoreBeanConfig", "getVariableResolverFactory()",
-				"Entering Init of getVariableResolverFactory");
+				"THAMARAIKANNAN - Entering Init of getVariableResolverFactory");
 			String mvelExpression = restTemplate.getForObject(configServerFileStorageURL + mvelFile, String.class);
 		VariableResolverFactory functionFactory = new MapVariableResolverFactory();
 			MVEL.eval(mvelExpression, functionFactory);
