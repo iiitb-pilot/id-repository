@@ -203,7 +203,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				newDraft.setCreatedBy(IdRepoSecurityManager.getUser());
 				newDraft.setCreatedDateTime(DateUtils.getUTCCurrentDateTime());
 				uinDraftRepo.save(newDraft);
-				idrepoDraftLogger.info("Test", "Test", "createDraft", "THAM - UIN Object is : " + registrationId + "  " + objectMapper.writeValueAsString(newDraft));
+				idrepoDraftLogger.info("Test", "Test", "createDraft", "THAM - UIN Object is Create Condition: " + registrationId + "  ");
 				idrepoDraftLogger.info("Test", "Test", "createDraft", "Saving Idrepo Draft Details into Table for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
 
 				return constructIdResponse(null, DRAFTED, null, null);
@@ -214,9 +214,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
-		} catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+		}
     }
 
 	private Object generateIdentityObject(Object uin) {
@@ -265,14 +263,14 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 					draftToUpdate.setUpdatedBy(IdRepoSecurityManager.getUser());
 					draftToUpdate.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
 					uinDraftRepo.save(draftToUpdate);
-					idrepoDraftLogger.info("Test", "Test", "updateDraft", "THAM - UIN Object is : " + registrationId + "  " + objectMapper.writeValueAsString(draftToUpdate));
+					idrepoDraftLogger.info("Test", "Test", "updateDraft", "THAM - UIN Object is IF Condition: " + registrationId + "  " );
 					idrepoDraftLogger.info("Test", "Test", "updateDraft", "Update Process Completed for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
 				} else {
 					updateDemographicData(request, draftToUpdate);
 					updateDocuments(request.getRequest(), draftToUpdate);
 
 					uinDraftRepo.save(draftToUpdate);
-					idrepoDraftLogger.info("Test", "Test", "updateDraft", "THAM - UIN Object is : " + registrationId + "  " + objectMapper.writeValueAsString(draftToUpdate));
+					idrepoDraftLogger.info("Test", "Test", "updateDraft", "THAM - UIN Object is else Condition: " + registrationId + "  ");
 					idrepoDraftLogger.info("Test", "Test", "updateDraft", "Update Process Completed for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
 				}
 			} else {
