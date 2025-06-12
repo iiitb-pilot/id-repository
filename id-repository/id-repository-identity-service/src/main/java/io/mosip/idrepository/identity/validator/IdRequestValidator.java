@@ -229,7 +229,6 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	public void validateRequest(Object request, Errors errors, String method) {
 		try {
 			if (Objects.nonNull(request)) {
-				mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "THAM - validateRequest - ", objectMapper.writeValueAsString(request));
 				Map<String, Object> requestMap = idRepoServiceHelper.convertToMap(request);
 				if (!(requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH)))) {
 					if (method.equals(CREATE)) {
@@ -248,7 +247,6 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 					requestMap.keySet().parallelStream().filter(key -> !key.contentEquals(ROOT_PATH)).forEach(requestMap::remove);
 					if (!errors.hasErrors()) {
 						String schemaVersion;
-						mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "THAM - validateRequest - ", objectMapper.writeValueAsString(requestMap));
 						if (requestMap.get(ROOT_PATH) != null) {
 							schemaVersion = String
 									.valueOf(((Map<String, Object>) requestMap.get(ROOT_PATH))
@@ -293,13 +291,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 					VALIDATE_REQUEST + " InvalidIdSchemaException | IdObjectIOException " + e.getMessage());
 			errors.rejectValue(REQUEST, ID_OBJECT_PROCESSING_FAILED.getErrorCode(),
 					ID_OBJECT_PROCESSING_FAILED.getErrorMessage());
-		} catch (JsonMappingException e) {
-            throw new RuntimeException(e);
-        } catch (JsonGenerationException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+		}
     }
 
 	/**
