@@ -468,8 +468,10 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
-		}
-	}
+		} catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 	/**
 	 * Builds the request.
@@ -480,7 +482,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	@SuppressWarnings("unchecked")
-	private IdRequestDTO buildRequest(String regId, UinDraft draft) {
+	private IdRequestDTO buildRequest(String regId, UinDraft draft) throws JsonProcessingException {
 		IdRequestDTO idRequest = new IdRequestDTO();
 		RequestDTO request = new RequestDTO();
 		request.setRegistrationId(regId);
