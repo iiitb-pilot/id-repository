@@ -159,27 +159,27 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	public IdResponseDTO createDraft(String registrationId, String uin) throws IdRepoAppException {
 		try {
 			Long startTime = System.currentTimeMillis();
-			idrepoDraftLogger.info("Test", "Test", "Test", "Starting Creating UIn Draft for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
+			idrepoDraftLogger.info("Test", "Test", "createDraft", "Starting Creating UIn Draft for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
 			UinDraft newDraft;
 			if (isForceMergeEnabled || (!super.uinHistoryRepo.existsByRegId(registrationId) && !uinDraftRepo.existsByRegId(registrationId))) {
-				idrepoDraftLogger.info("Test", "Test", "Test", "Record Exist in UIN Draft History for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
+				idrepoDraftLogger.info("Test", "Test", "createDraft", "Record Exist in UIN Draft History for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
 
 				if (isForceMergeEnabled) {
 					IdResponseDTO response = proxyService.retrieveIdentityByRid(registrationId, uin, null);
-					idrepoDraftLogger.info("Test", "Test", "Test", "Retrieve Record from Proxy Service for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
+					idrepoDraftLogger.info("Test", "Test", "createDraft", "Retrieve Record from Proxy Service for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
 					Object res = response.getResponse().getIdentity();
 					LinkedHashMap<String, Object> map = mapper.convertValue(res, LinkedHashMap.class);
 					uin = String.valueOf(map.get("UIN"));
 				}
 				if (Objects.nonNull(uin)) {
 					Optional<Uin> uinObjectOptional = super.uinRepo.findByUinHash(super.getUinHash(uin));
-					idrepoDraftLogger.info("Test", "Test", "Test", "Find the UIN using UIN Hash m Proxy Service for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
+					idrepoDraftLogger.info("Test", "Test", "createDraft", "Find the UIN using UIN Hash m Proxy Service for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
 
 					if (uinObjectOptional.isPresent()) {
 						Uin uinObject = uinObjectOptional.get();
 						newDraft = mapper.convertValue(uinObject, UinDraft.class);
 						updateBiometricAndDocumentDrafts(registrationId, newDraft, uinObject);
-						idrepoDraftLogger.info("Test", "Test", "Test", "updateBiometricAndDocumentDrafts for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
+						idrepoDraftLogger.info("Test", "Test", "createDraft", "updateBiometricAndDocumentDrafts for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
 
 						newDraft.setRegId(registrationId);
 						newDraft.setUin(super.getUinToEncrypt(uin));
@@ -196,14 +196,15 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 					byte[] uinData = convertToBytes(generateIdentityObject(uin));
 					newDraft.setUinData(uinData);
 					newDraft.setUinDataHash(securityManager.hash(uinData));
-					idrepoDraftLogger.info("Test", "Test", "Test", "Else Condition for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
+					idrepoDraftLogger.info("Test", "Test", "createDraft", "Else Condition for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
 				}
 				newDraft.setRegId(registrationId);
 				newDraft.setStatusCode("DRAFT");
 				newDraft.setCreatedBy(IdRepoSecurityManager.getUser());
 				newDraft.setCreatedDateTime(DateUtils.getUTCCurrentDateTime());
 				uinDraftRepo.save(newDraft);
-				idrepoDraftLogger.info("Test", "Test", "Test", "Saving Idrepo Draft Details into Table for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
+				idrepoDraftLogger.info("Test", "Test", "createDraft", "THAM - UIN Object is : " + registrationId + "  " + objectMapper.writeValueAsString(newDraft));
+				idrepoDraftLogger.info("Test", "Test", "createDraft", "Saving Idrepo Draft Details into Table for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
 
 				return constructIdResponse(null, DRAFTED, null, null);
 			} else {
@@ -213,8 +214,10 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
-		}
-	}
+		} catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 	private Object generateIdentityObject(Object uin) {
 		List<String> pathList = new ArrayList<>(Arrays.asList("identity.UIN".split("\\.")));
@@ -246,7 +249,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		try {
 			Long startTime = System.currentTimeMillis();
 			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(registrationId);
-			idrepoDraftLogger.info("Test", "Test", "Test", "Starting Update UIn Draft for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
+			idrepoDraftLogger.info("Test", "Test", "updateDraft", "Starting Update UIn Draft for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
 
 			if (uinDraft.isPresent()) {
 				UinDraft draftToUpdate = uinDraft.get();
@@ -256,19 +259,21 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 					byte[] uinData = super.convertToBytes(request.getRequest().getIdentity());
 					draftToUpdate.setUinData(uinData);
 					draftToUpdate.setUinDataHash(securityManager.hash(uinData));
-					idrepoDraftLogger.info("Test", "Test", "Test", "Before Update Documents method for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
+					idrepoDraftLogger.info("Test", "Test", "updateDraft", "Before Update Documents method for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
 					updateDocuments(request.getRequest(), draftToUpdate);
-					idrepoDraftLogger.info("Test", "Test", "Test", "After Update Documents method for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
+					idrepoDraftLogger.info("Test", "Test", "updateDraft", "After Update Documents method for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
 					draftToUpdate.setUpdatedBy(IdRepoSecurityManager.getUser());
 					draftToUpdate.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
 					uinDraftRepo.save(draftToUpdate);
-					idrepoDraftLogger.info("Test", "Test", "Test", "Update Process Completed for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
+					idrepoDraftLogger.info("Test", "Test", "updateDraft", "THAM - UIN Object is : " + registrationId + "  " + objectMapper.writeValueAsString(draftToUpdate));
+					idrepoDraftLogger.info("Test", "Test", "updateDraft", "Update Process Completed for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
 				} else {
 					updateDemographicData(request, draftToUpdate);
 					updateDocuments(request.getRequest(), draftToUpdate);
 
 					uinDraftRepo.save(draftToUpdate);
-					idrepoDraftLogger.info("Test", "Test", "Test", "Update Process Completed for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
+					idrepoDraftLogger.info("Test", "Test", "updateDraft", "THAM - UIN Object is : " + registrationId + "  " + objectMapper.writeValueAsString(draftToUpdate));
+					idrepoDraftLogger.info("Test", "Test", "updateDraft", "Update Process Completed for RID : " + registrationId + "  " + (System.currentTimeMillis()-startTime) + " ms");
 				}
 			} else {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, UPDATE_DRAFT,
@@ -480,6 +485,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		RequestDTO request = new RequestDTO();
 		request.setRegistrationId(regId);
 		Map<String, Object> identityData = convertToObject(draft.getUinData(), Map.class);
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "THAM - identityData - ", objectMapper.writeValueAsString(identityData));
+
 		request.setVerifiedAttributes(
 				mapper.convertValue(identityData.get(VERIFIED_ATTRIBUTES), new TypeReference<List<String>>() {
 				}));
