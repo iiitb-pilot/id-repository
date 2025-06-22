@@ -493,7 +493,6 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		identityData.remove(VERIFIED_ATTRIBUTES);
 		request.setIdentity(identityData);
 		idRequest.setRequest(request);
-		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "THAM - idRequest - ", objectMapper.writeValueAsString(idRequest));
 		return idRequest;
 	}
 

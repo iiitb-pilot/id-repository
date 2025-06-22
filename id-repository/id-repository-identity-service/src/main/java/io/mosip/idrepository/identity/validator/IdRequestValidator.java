@@ -1,7 +1,6 @@
 package io.mosip.idrepository.identity.validator;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.AUTH_TYPE_SEPERATOR;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.*;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
@@ -230,6 +229,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 		try {
 			if (Objects.nonNull(request)) {
 				Map<String, Object> requestMap = idRepoServiceHelper.convertToMap(request);
+				mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "THAM - idRequest - ", objectMapper.writeValueAsString(requestMap));
 				if (!(requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH)))) {
 					if (method.equals(CREATE)) {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateRequest",
@@ -252,7 +252,11 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 									.valueOf(((Map<String, Object>) requestMap.get(ROOT_PATH))
 											.get(idRepoServiceHelper.getIdentityMapping().getIdentity().getIDSchemaVersion().getValue()));
 							if (method.equals(CREATE)) {
-								idObjectValidator.validateIdObject(idRepoServiceHelper.getSchema(schemaVersion), requestMap, newRegistrationFields);
+								String schema = idRepoServiceHelper.getSchema(schemaVersion);
+								mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "THAM - idRequest before Validate - ", objectMapper.writeValueAsString(requestMap));
+								mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "THAM - idRequest before Validate - ", objectMapper.writeValueAsString(schema));
+								mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "THAM - idRequest before Validate - ", objectMapper.writeValueAsString(newRegistrationFields));
+								idObjectValidator.validateIdObject(schema, requestMap, newRegistrationFields);
 							} else {
 								idObjectValidator.validateIdObject(idRepoServiceHelper.getSchema(schemaVersion), requestMap, updateUinFields);
 							}
@@ -291,7 +295,13 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 					VALIDATE_REQUEST + " InvalidIdSchemaException | IdObjectIOException " + e.getMessage());
 			errors.rejectValue(REQUEST, ID_OBJECT_PROCESSING_FAILED.getErrorCode(),
 					ID_OBJECT_PROCESSING_FAILED.getErrorMessage());
-		}
+		} catch (JsonMappingException e) {
+            throw new RuntimeException(e);
+        } catch (JsonGenerationException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 	/**
