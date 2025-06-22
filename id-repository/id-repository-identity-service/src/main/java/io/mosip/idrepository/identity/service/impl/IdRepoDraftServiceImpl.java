@@ -493,13 +493,20 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		identityData.remove(VERIFIED_ATTRIBUTES);
 		request.setIdentity(identityData);
 		idRequest.setRequest(request);
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "THAM - idRequest - ", objectMapper.writeValueAsString(idRequest));
 		return idRequest;
 	}
 
 	private void validateRequest(RequestDTO request) throws IdRepoDataValidationException {
 		Errors errors = new BeanPropertyBindingResult(new IdRequestDTO(), "idRequestDto");
 		validator.validateRequest(request, errors, "create");
-		DataValidationUtil.validate(errors);
+        try {
+			if (errors.hasErrors())
+				mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "THAM - DataValidationUtil - Request - " +  objectMapper.writeValueAsString(request), " Errors : " + objectMapper.writeValueAsString(errors));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        DataValidationUtil.validate(errors);
 	}
 
 	private void publishDocuments(UinDraft draft, final Uin uinObject) {
