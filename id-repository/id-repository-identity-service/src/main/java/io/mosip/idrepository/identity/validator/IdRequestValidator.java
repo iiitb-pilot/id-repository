@@ -258,7 +258,11 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 								mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "THAM - idRequest before Validate - ", objectMapper.writeValueAsString(newRegistrationFields));
 								idObjectValidator.validateIdObject(schema, requestMap, newRegistrationFields);
 							} else {
-								idObjectValidator.validateIdObject(idRepoServiceHelper.getSchema(schemaVersion), requestMap, updateUinFields);
+								String schema = idRepoServiceHelper.getSchema(schemaVersion);
+								mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "THAM - idRequest before Validate for update - ", objectMapper.writeValueAsString(requestMap));
+								mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "THAM - idRequest before Validate for update - ", objectMapper.writeValueAsString(schema));
+								mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "THAM - idRequest before Validate for update - ", objectMapper.writeValueAsString(updateUinFields));
+								idObjectValidator.validateIdObject(schema, requestMap, updateUinFields);
 							}
 						}
 					}
