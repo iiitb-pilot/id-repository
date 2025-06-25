@@ -135,14 +135,6 @@ public class IdRepoDraftController {
 			@ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
 			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "THAM - UpdateDraft", "RegistrationId : " + registrationId);
-			IdRequestDTO request1 = new IdRequestDTO();
-			request1.setId(request.getId());
-			request1.setRequest(request.getRequest());
-			request1.setVersion(request.getVersion());
-			request1.setMetadata(request.getMetadata());
-			request1.setRequesttime(request.getRequesttime());
-			request1.getRequest().setDocuments(null);
-            mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "THAM - UpdateDraft", "Request : " + (new Gson()).toJson(request1));
             request.getRequest().setRegistrationId(registrationId);
 			validator.validateRequest(request.getRequest(), errors, "update");
 			DataValidationUtil.validate(errors);

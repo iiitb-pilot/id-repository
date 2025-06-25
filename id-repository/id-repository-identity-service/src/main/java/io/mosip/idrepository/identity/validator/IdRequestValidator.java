@@ -228,7 +228,9 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	public void validateRequest(Object request, Errors errors, String method) {
 		try {
 			if (Objects.nonNull(request)) {
+				mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "THAM - UpdateDraft", "Request : " + objectMapper.writeValueAsString(request));
 				Map<String, Object> requestMap = idRepoServiceHelper.convertToMap(request);
+				mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "THAM - UpdateDraft", "RequestMap : " + objectMapper.writeValueAsString(requestMap));
 				if (!(requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH)))) {
 					if (method.equals(CREATE)) {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateRequest",
