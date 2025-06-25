@@ -30,7 +30,6 @@ import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.IdRepoDraftService;
 import io.mosip.idrepository.core.util.DataValidationUtil;
-import io.mosip.idrepository.core.util.MapperUtil;
 import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.entity.UinBiometric;
 import io.mosip.idrepository.identity.entity.UinBiometricDraft;
@@ -153,8 +152,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	@Value("${mosip.idrepo.create-identity.enable-force-merge:false}")
 	private boolean isForceMergeEnabled;
 
-	@Autowired
-	private MapperUtil mapperUtil;
+	ObjectMapper objectMapper = new ObjectMapper();
 
 
 	@Override
@@ -487,7 +485,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		RequestDTO request = new RequestDTO();
 		request.setRegistrationId(regId);
 		Map<String, Object> identityData = convertToObject(draft.getUinData(), Map.class);
-		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "THAM - identityData - ", mapperUtil.getObjectMapper().writeValueAsString(identityData));
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "THAM - identityData - ", objectMapper.writeValueAsString(identityData));
 
 		request.setVerifiedAttributes(
 				mapper.convertValue(identityData.get(VERIFIED_ATTRIBUTES), new TypeReference<List<String>>() {
@@ -503,7 +501,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		validator.validateRequest(request, errors, "create");
         try {
 			if (errors.hasErrors())
-				mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "THAM - DataValidationUtil - Request - " +  mapperUtil.getObjectMapper().writeValueAsString(request), " Errors : " + mapperUtil.getObjectMapper().writeValueAsString(errors));
+				mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "THAM - DataValidationUtil - Request - " +  objectMapper.writeValueAsString(request), " Errors : " + objectMapper.writeValueAsString(errors));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

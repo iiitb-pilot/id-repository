@@ -1,8 +1,5 @@
 package io.mosip.idrepository.identity.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import io.mosip.idrepository.core.constant.AuditEvents;
 import io.mosip.idrepository.core.constant.AuditModules;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
@@ -134,8 +131,7 @@ public class IdRepoDraftController {
 	public ResponseEntity<IdResponseDTO> updateDraft(@PathVariable String registrationId, @RequestBody IdRequestDTO request,
 			@ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
-			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "THAM - UpdateDraft", "RegistrationId : " + registrationId);
-            request.getRequest().setRegistrationId(registrationId);
+			request.getRequest().setRegistrationId(registrationId);
 			validator.validateRequest(request.getRequest(), errors, "update");
 			DataValidationUtil.validate(errors);
 			return new ResponseEntity<>(draftService.updateDraft(registrationId, request), HttpStatus.OK);

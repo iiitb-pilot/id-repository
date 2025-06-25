@@ -20,7 +20,6 @@ import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.idrepository.core.util.MapperUtil;
 import io.mosip.idrepository.identity.dto.HandleDto;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -59,7 +58,7 @@ public class IdRepoServiceHelper {
     private static Map<String, List<String>> supportedHandlesInSchema = new HashMap<>();
 
     @Autowired
-    private MapperUtil mapperUtil;
+    private ObjectMapper mapper;
 
     @Autowired
     private RestRequestBuilder restBuilder;
@@ -85,7 +84,7 @@ public class IdRepoServiceHelper {
     @PostConstruct
     private void initialize() throws IOException {
         try (InputStream xsdBytes = new URL(identityMappingJson).openStream()) {
-            identityMapping = mapperUtil.getObjectMapper().readValue(IOUtils.toString(xsdBytes, StandardCharsets.UTF_8),
+            identityMapping = mapper.readValue(IOUtils.toString(xsdBytes, StandardCharsets.UTF_8),
                     IdentityMapping.class);;
         }
     }
@@ -104,7 +103,7 @@ public class IdRepoServiceHelper {
      */
     public Map<String, Object> convertToMap(Object identity) throws IdRepoAppException {
         try {
-            return mapperUtil.getObjectMapper().readValue(mapperUtil.getObjectMapper().writeValueAsBytes(identity), new TypeReference<Map<String, Object>>() {
+            return mapper.readValue(mapper.writeValueAsBytes(identity), new TypeReference<Map<String, Object>>() {
             });
         } catch (IOException e) {
             mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER, "convertToMap", "\n" + e.getMessage());
