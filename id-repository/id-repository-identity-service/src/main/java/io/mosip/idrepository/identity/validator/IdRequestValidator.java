@@ -5,7 +5,6 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -15,9 +14,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
 import io.mosip.idrepository.core.dto.IdRequestByIdDTO;
-import io.mosip.kernel.core.exception.ExceptionUtils;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -223,9 +219,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	public void validateRequest(Object request, Errors errors, String method) {
 		try {
 			if (Objects.nonNull(request)) {
-				mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "THAM - UpdateDraft", "Request : " + objectMapper.writeValueAsString(request));
 				Map<String, Object> requestMap = idRepoServiceHelper.convertToMap(request);
-				mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "THAM - UpdateDraft", "RequestMap : " + objectMapper.writeValueAsString(requestMap));
 				if (!(requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH)))) {
 					if (method.equals(CREATE)) {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateRequest",
@@ -249,17 +243,9 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 									.valueOf(((Map<String, Object>) requestMap.get(ROOT_PATH))
 											.get(idRepoServiceHelper.getIdentityMapping().getIdentity().getIDSchemaVersion().getValue()));
 							if (method.equals(CREATE)) {
-								String schema = idRepoServiceHelper.getSchema(schemaVersion);
-								mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "THAM - idRequest before Validate - ", objectMapper.writeValueAsString(requestMap));
-								mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "THAM - idRequest before Validate - ", objectMapper.writeValueAsString(schema));
-								mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "THAM - idRequest before Validate - ", objectMapper.writeValueAsString(newRegistrationFields));
-								idObjectValidator.validateIdObject(schema, requestMap, newRegistrationFields);
+								idObjectValidator.validateIdObject(idRepoServiceHelper.getSchema(schemaVersion), requestMap, newRegistrationFields);
 							} else {
-								String schema = idRepoServiceHelper.getSchema(schemaVersion);
-								mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "THAM - idRequest before Validate for update - ", objectMapper.writeValueAsString(requestMap));
-								mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "THAM - idRequest before Validate for update - ", objectMapper.writeValueAsString(schema));
-								mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "THAM - idRequest before Validate for update - ", objectMapper.writeValueAsString(updateUinFields));
-								idObjectValidator.validateIdObject(schema, requestMap, updateUinFields);
+								idObjectValidator.validateIdObject(idRepoServiceHelper.getSchema(schemaVersion), requestMap, updateUinFields);
 							}
 						}
 					}
@@ -296,13 +282,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 					VALIDATE_REQUEST + " InvalidIdSchemaException | IdObjectIOException " + e.getMessage());
 			errors.rejectValue(REQUEST, ID_OBJECT_PROCESSING_FAILED.getErrorCode(),
 					ID_OBJECT_PROCESSING_FAILED.getErrorMessage());
-		} catch (JsonMappingException e) {
-            throw new RuntimeException(e);
-        } catch (JsonGenerationException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+		}
     }
 
 	/**
