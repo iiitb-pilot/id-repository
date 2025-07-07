@@ -25,6 +25,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -84,11 +85,14 @@ public class IdRepoDraftController {
 
 	@Autowired
 	private Environment environment;
-	
+
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
 		binder.addValidators(validator);
 	}
+
+	@Value("#{${mosip.idrepo.bio-extractor-service.sdk.flags:null}}")
+	private Map<String, String> flags;
 	
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostdraftcreateregistrationId())")
 	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
@@ -292,6 +296,10 @@ public class IdRepoDraftController {
 		}
 		if(Objects.nonNull(faceExtractionFormat)) {
 			extractionFormats.put(FACE_EXTRACTION_FORMAT, faceExtractionFormat);
+		}
+
+		if(flags != null) {
+			extractionFormats.putAll(flags);
 		}
 		extractionFormats.remove(null);
 		return extractionFormats;
