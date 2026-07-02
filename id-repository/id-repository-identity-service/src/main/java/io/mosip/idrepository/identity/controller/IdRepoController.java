@@ -442,7 +442,7 @@ public class IdRepoController {
 			return IdType.UIN;
 		if (validator.validateVid(id))
 			return IdType.VID;
-				return IdType.ID;
+				return IdType.RID;
 	}
 	
 	public static String getHMACHashCode(String value) throws NoSuchAlgorithmException {
