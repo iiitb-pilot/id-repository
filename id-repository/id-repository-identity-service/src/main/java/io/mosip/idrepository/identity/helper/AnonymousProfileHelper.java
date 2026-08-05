@@ -2,6 +2,7 @@ package io.mosip.idrepository.identity.helper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
+import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdentityIssuanceProfile;
 import io.mosip.idrepository.core.dto.IdentityMapping;
@@ -19,8 +20,11 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,31 +35,61 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Executor;
 
 
+/**
+ * Builds and persists anonymous identity issuance profiles (IOV) asynchronously.
+ * <p>
+ * Request-scoped data is accumulated via fluent setters in a {@link ThreadLocal}
+ * so concurrent HTTP threads do not overwrite each other.
+ * </p>
+ * <p>
+ * <strong>Do not put {@code @Async} on {@link #buildAndsaveProfile(boolean)}.</strong>
+ * That method must run on the request thread to {@linkplain #detachContext() snapshot}
+ * the ThreadLocal, then hand the copy to {@code anonymousProfileExecutor}. An
+ * {@code @Async} worker thread has an empty ThreadLocal and will always see {@code null}.
+ * </p>
+ */
 @Component
 @Transactional
 public class AnonymousProfileHelper {
+
+    /** Mosip logger. */
     private static final Logger mosipLogger = IdRepoLogger.getLogger(AnonymousProfileHelper.class);
 
     @Autowired
+    /** Anonymous profile repo. */
     private AnonymousProfileRepo anonymousProfileRepo;
 
     @Autowired
+    /** Mapper. */
     private ObjectMapper mapper;
 
     @Autowired
+    /** Object store helper. */
     private ObjectStoreHelper objectStoreHelper;
 
     @Autowired
+    /** Channel info helper. */
     private ChannelInfoHelper channelInfoHelper;
 
-    @Value("${mosip.identity.mapping-file}")
+    @Autowired
+    @Qualifier("anonymousProfileExecutor")
+    /** Async executor for profile build/save (runs after context snapshot). */
+    private Executor anonymousProfileExecutor;
+
+    @Value("${" + IdRepoConstants.IDENTITY_MAPPING_JSON + "}")
+    /** Identity mapping json. */
     private String identityMappingJson;
 
+    /** Context holder. */
     private final ThreadLocal<ProfileContext> contextHolder = new ThreadLocal<>();
 
     @PostConstruct
+    /**
+     * Init.
+     */
     public void init() throws IOException {
         try (InputStream xsdBytes = new URL(identityMappingJson).openStream()) {
             IdentityMapping identityMapping = mapper.readValue(
@@ -65,32 +99,60 @@ public class AnonymousProfileHelper {
         IdentityIssuanceProfileBuilder.setDateFormat(EnvUtil.getIovDateFormat());
     }
 
-    @Async("anonymousProfileExecutor")
+    /**
+     * Captures request-thread context and hands off profile construction to the async executor.
+     * <p>
+     * Must stay synchronous (no {@code @Async} on this method). Snapshot happens here; work runs
+     * on {@code anonymousProfileExecutor}.
+     * </p>
+     *
+     * @param isDraft when {@code true}, clears context and skips profile creation (draft flow)
+     */
     public void buildAndsaveProfile(boolean isDraft) {
+        ProfileContext ctx = detachContext();
         if (isDraft) {
-            contextHolder.remove();
             return;
         }
-        ProfileContext ctx = contextHolder.get();
         if (ctx == null || ctx.newUinData == null || ctx.regId == null) {
             mosipLogger.warn(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper",
-                    "buildAndsaveProfile", "No data in context, newUinData is null, or regId is null. Skipping profile creation.");
-            contextHolder.remove();
+                    "buildAndsaveProfile",
+                    "Missing context on request thread before async handoff"
+                            + " (ctxNull=" + (ctx == null)
+                            + ", newUinDataNull=" + (ctx == null || ctx.newUinData == null)
+                            + ", regIdNull=" + (ctx == null || ctx.regId == null)
+                            + "). Skipping profile creation.");
             return;
         }
+        ProfileContext copy = copyContext(ctx);
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        anonymousProfileExecutor.execute(() -> {
+            SecurityContextHolder.setContext(securityContext);
+            try {
+                doBuildAndSaveProfile(copy);
+            } finally {
+                SecurityContextHolder.clearContext();
+            }
+        });
+    }
+
+    /**
+     * Builds and persists the profile from a request-thread snapshot (executor worker).
+     *
+     * @param ctx immutable-enough copy of request context; never read from ThreadLocal here
+     */
+    void doBuildAndSaveProfile(ProfileContext ctx) {
         try {
-            // Prepare CBEFF
             if (ctx.oldCbeff == null && ctx.oldCbeffRefId != null) {
                 ctx.oldCbeff = encodeCbeffIfAvailable(ctx.oldCbeffRefId, ctx.uinHash);
             }
             if (ctx.newCbeff == null && ctx.newCbeffRefId != null) {
                 ctx.newCbeff = encodeCbeffIfAvailable(ctx.newCbeffRefId, ctx.uinHash);
             }
-            List<DocumentsDTO> oldDocs = (ctx.oldCbeff != null)
+            List<DocumentsDTO> oldDocs = ctx.oldCbeff != null
                     ? List.of(new DocumentsDTO(IdentityIssuanceProfileBuilder.getIdentityMapping()
                     .getIdentity().getIndividualBiometrics().getValue(), ctx.oldCbeff))
                     : Collections.emptyList();
-            List<DocumentsDTO> newDocs = (ctx.newCbeff != null)
+            List<DocumentsDTO> newDocs = ctx.newCbeff != null
                     ? List.of(new DocumentsDTO(IdentityIssuanceProfileBuilder.getIdentityMapping()
                     .getIdentity().getIndividualBiometrics().getValue(), ctx.newCbeff))
                     : Collections.emptyList();
@@ -103,27 +165,22 @@ public class AnonymousProfileHelper {
                     .setNewIdentity(ctx.newUinData)
                     .setNewDocuments(newDocs)
                     .build();
-            anonymousProfileRepo.save(AnonymousProfileEntity.builder()
-                    .id(id)
+            AnonymousProfileEntity anonymousProfile = AnonymousProfileEntity.builder().id(id)
                     .profile(mapper.writeValueAsString(profile))
                     .createdBy(IdRepoSecurityManager.getUser())
-                    .crDTimes(DateUtils2.getUTCCurrentDateTime())
-                    .build());
+                    .crDTimes(DateUtils2.getUTCCurrentDateTime()).build();
+            anonymousProfileRepo.save(anonymousProfile);
             updateChannelInfo(ctx.oldUinData, ctx.newUinData);
         } catch (Exception e) {
             mosipLogger.warn(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper",
-                    "buildAndsaveProfile", ExceptionUtils.getStackTrace(e));
+                    "doBuildAndSaveProfile", ExceptionUtils.getStackTrace(e));
         }
-        // Note: contextHolder is NOT removed here.
-        // In production (@Async), this method runs in a separate executor thread whose
-        // ThreadLocal was never populated — removing it is a no-op there.
-        // In tests (synchronous), keeping the context alive allows isNewCbeffPresent() /
-        // isOldCbeffPresent() to reflect the cbeff that was lazily loaded during this call.
-        // The context is cleaned up when setRegId() is called with a different registration ID.
     }
 
     private String encodeCbeffIfAvailable(String refId, String uinHash) {
-        if (refId == null || uinHash == null) return null;
+        if (refId == null || uinHash == null) {
+            return null;
+        }
         try {
             byte[] bytes = objectStoreHelper.getBiometricObject(uinHash, refId);
             return CryptoUtil.encodeToURLSafeBase64(bytes);
@@ -140,58 +197,87 @@ public class AnonymousProfileHelper {
         channelInfoHelper.updateEmailChannelInfo(oldUinData, newUinData);
     }
 
-    // ====================== ThreadLocal Setters ======================
-
+    /**
+     * @param oldUinData old uin data
+     */
     public AnonymousProfileHelper setOldUinData(byte[] oldUinData) {
         getContext().oldUinData = oldUinData;
         return this;
     }
 
+    /**
+     * @param newUinData new uin data
+     */
     public AnonymousProfileHelper setNewUinData(byte[] newUinData) {
         getContext().newUinData = newUinData;
         return this;
     }
 
+    /**
+     * @param oldCbeff old cbeff
+     */
     public AnonymousProfileHelper setOldCbeff(String oldCbeff) {
         getContext().oldCbeff = oldCbeff;
         return this;
     }
 
+    /**
+     * @return whether old cbeff present
+     */
     public boolean isOldCbeffPresent() {
         ProfileContext ctx = contextHolder.get();
         return ctx != null && ctx.oldCbeff != null;
     }
 
+    /**
+     * @param newCbeff new cbeff
+     */
     public AnonymousProfileHelper setNewCbeff(String newCbeff) {
         getContext().newCbeff = newCbeff;
         return this;
     }
 
+    /**
+     * @return whether new cbeff present
+     */
     public boolean isNewCbeffPresent() {
         ProfileContext ctx = contextHolder.get();
         return ctx != null && ctx.newCbeff != null;
     }
 
+    /**
+     * Set old cbeff.
+     * @param uinHash uin hash
+     * @param fileRefId file ref id
+     * @return anonymous profile helper
+     */
     public AnonymousProfileHelper setOldCbeff(String uinHash, String fileRefId) {
         ProfileContext ctx = getContext();
         if (ctx.oldCbeff == null) {
-            String substringHash = StringUtils.substringAfter(uinHash, "_");
-            ctx.uinHash = StringUtils.isBlank(substringHash) ? uinHash : substringHash;
+            ctx.uinHash = normalizeUinHash(uinHash);
             ctx.oldCbeffRefId = fileRefId;
         }
         return this;
     }
 
+    /**
+     * Set new cbeff.
+     * @param uinHash uin hash
+     * @param fileRefId file ref id
+     * @return anonymous profile helper
+     */
     public AnonymousProfileHelper setNewCbeff(String uinHash, String fileRefId) {
         ProfileContext ctx = getContext();
         if (ctx.newCbeff == null) {
-            String substringHash = StringUtils.substringAfter(uinHash, "_");
-            ctx.uinHash = StringUtils.isBlank(substringHash) ? uinHash : substringHash;
+            ctx.uinHash = normalizeUinHash(uinHash);
             ctx.newCbeffRefId = fileRefId;
         }
         return this;
     }
 
+    /**
+     * @param regId reg id
+     */
     public AnonymousProfileHelper setRegId(String regId) {
         ProfileContext ctx = getContext();
         if (ctx.regId != null && regId != null && !ctx.regId.contentEquals(regId)) {
@@ -211,8 +297,32 @@ public class AnonymousProfileHelper {
         return ctx;
     }
 
+    private ProfileContext detachContext() {
+        ProfileContext ctx = contextHolder.get();
+        contextHolder.remove();
+        return ctx;
+    }
+
     private void resetData() {
         contextHolder.remove();
+    }
+
+    private static String normalizeUinHash(String uinHash) {
+        String substringHash = StringUtils.substringAfter(uinHash, "_");
+        return StringUtils.isBlank(substringHash) ? uinHash : substringHash;
+    }
+
+    private static ProfileContext copyContext(ProfileContext src) {
+        ProfileContext copy = new ProfileContext();
+        copy.oldUinData = src.oldUinData;
+        copy.newUinData = src.newUinData;
+        copy.oldCbeff = src.oldCbeff;
+        copy.newCbeff = src.newCbeff;
+        copy.oldCbeffRefId = src.oldCbeffRefId;
+        copy.newCbeffRefId = src.newCbeffRefId;
+        copy.uinHash = src.uinHash;
+        copy.regId = src.regId;
+        return copy;
     }
 
     static class ProfileContext {
