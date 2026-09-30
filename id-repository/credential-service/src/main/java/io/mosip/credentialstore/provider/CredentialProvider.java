@@ -89,7 +89,7 @@ import jakarta.annotation.PostConstruct;
 
 /**
  * The Interface CredentialProvider.
- * 
+ *
  * @author Sowmya
  */
 @Component
@@ -162,7 +162,7 @@ public class CredentialProvider {
 	 */
 	@SuppressWarnings("unchecked")
 	public DataProviderResponse getFormattedCredentialData(CredentialServiceRequestDto credentialServiceRequestDto,
-			Map<AllowedKycDto, Object> sharableAttributeMap) throws CredentialFormatterException {
+														   Map<AllowedKycDto, Object> sharableAttributeMap) throws CredentialFormatterException {
 		String requestId = credentialServiceRequestDto.getRequestId();
 		DataProviderResponse dataProviderResponse = null;
 		try {
@@ -230,7 +230,7 @@ public class CredentialProvider {
 
 	@SuppressWarnings("rawtypes")
 	public Map<AllowedKycDto, Object> prepareSharableAttributes(IdResponseDTO idResponseDto,
-			PartnerCredentialTypePolicyDto policyResponseDto, CredentialServiceRequestDto credentialServiceRequestDto)
+																PartnerCredentialTypePolicyDto policyResponseDto, CredentialServiceRequestDto credentialServiceRequestDto)
 			throws CredentialFormatterException {
 		String requestId = credentialServiceRequestDto.getRequestId();
 
@@ -245,6 +245,8 @@ public class CredentialProvider {
 			List<AllowedKycDto> sharableAttributeList = sharableAttributeFromPolicy;
 			Set<AllowedKycDto> sharableAttributeDemographicKeySet = new HashSet<>();
 			Set<AllowedKycDto> sharableAttributeBiometricKeySet = new HashSet<>();
+			Set<AllowedKycDto> sharableAttributeDocumentKeySet = new HashSet<>();
+			LOGGER.info("TRACE: Initialized sharableAttributeDocumentKeySet");
 			List<String> userRequestedAttributes = credentialServiceRequestDto.getSharableAttributes();
 			Map<String, Object> additionalData = credentialServiceRequestDto.getAdditionalData();
 			if (userRequestedAttributes != null && !userRequestedAttributes.isEmpty()) {
@@ -292,6 +294,10 @@ public class CredentialProvider {
 						} else if (dto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)) {
 							sharableAttributeBiometricKeySet.add(dto);
 
+						} else if (dto.getGroup().equalsIgnoreCase("DOCUMENT")) {
+							LOGGER.info("TRACE: DOCUMENT fetched from user requested attributes: "
+									+ dto.getAttributeName());
+							sharableAttributeDocumentKeySet.add(dto);
 						}
 					}
 				});
@@ -307,6 +313,10 @@ public class CredentialProvider {
 					} else if (dto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)) {
 						sharableAttributeBiometricKeySet.add(dto);
 
+					} else if (dto.getGroup().equalsIgnoreCase("DOCUMENT")) {
+						LOGGER.info("TRACE: DOCUMENT  fetched from policy: "
+								+ dto.getAttributeName());
+						sharableAttributeDocumentKeySet.add(dto);
 					}
 
 				});
@@ -398,6 +408,31 @@ public class CredentialProvider {
 				}
 
 			}
+			LOGGER.info("TRACE:document processing.attributes count: "
+					+ sharableAttributeDocumentKeySet.size());
+			for (AllowedKycDto key : sharableAttributeDocumentKeySet) {
+				String documentValue = null;
+				String attribute = key.getSource().get(0).getAttribute();
+				LOGGER.info("TRACE: document attribute: " + attribute);
+				for (DocumentsDTO doc : documents) {
+					LOGGER.info("TRACE: Checking for document category: " + doc.getCategory()
+							+ " attribute: " + attribute);
+					if (doc.getCategory().equals(attribute)) {
+						LOGGER.info("TRACE: document found for attribute: " + attribute);
+
+						documentValue = doc.getValue();
+						break;
+					}
+				}
+				if (documentValue != null) {
+					attributesMap.put(key, documentValue);
+
+				}
+				else {
+
+					LOGGER.info("TRACE: No document found: " + attribute);
+				}
+			}
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"end preparing demo and bio sharable attributes");
 			return attributesMap;
@@ -411,15 +446,15 @@ public class CredentialProvider {
 	private boolean isNameAttribute(String attrName) {
 		return isAttributeInProperty(attrName, CREDENTIAL_NAME_ATTRIBUTE_NAMES, FULLNAME);
 	}
-	
+
 	private boolean isFullAddressAttribute(String attrName) {
 		return isAttributeInProperty(attrName, CREDENTIAL_ADDRESS_ATTRIBUTE_NAMES, FULLADDRESS);
 	}
-	
+
 	private boolean isPhotoAttribute(String attrName) {
 		return isAttributeInProperty(attrName, CREDENTIAL_PHOTO_ATTRIBUTE_NAMES, PHOTO);
 	}
-	
+
 	private boolean isAttributeInProperty(String attrName, String propName, String defaultValue) {
 		return Stream.of(env.getProperty(propName, "").split(","))
 				.anyMatch(attrName::equalsIgnoreCase);
@@ -621,7 +656,7 @@ public class CredentialProvider {
 
 	/**
 	 * format the data based on user request
-	 * 
+	 *
 	 * @param key
 	 * @param identity
 	 * @param userReqFormatingAttributes
@@ -648,7 +683,7 @@ public class CredentialProvider {
 			List<String> identityAttributesList = attributeFormat==null?List.of():Arrays.asList(attributeFormat.split(","));
 			formattedObject = formatData(identity, FULLADDRESS, identityAttributesList, source.getFilter());
 		} else if(identity.get(attribute) instanceof List){
-				formattedObject = formatData(identity, attribute, List.of(), source.getFilter());
+			formattedObject = formatData(identity, attribute, List.of(), source.getFilter());
 		}
 		return formattedObject;
 	}
@@ -719,7 +754,7 @@ public class CredentialProvider {
 
 	/**
 	 * get the address data from identity json file
-	 * 
+	 *
 	 * @return
 	 * @throws Exception
 	 */
@@ -730,7 +765,7 @@ public class CredentialProvider {
 
 	/**
 	 * get the name data from identity json file
-	 * 
+	 *
 	 * @return
 	 * @throws Exception
 	 */
@@ -741,13 +776,13 @@ public class CredentialProvider {
 
 	/**
 	 * get the identity attribute based on requested data
-	 * 
+	 *
 	 * @param identity
 	 * @param attribute
 	 * @param languageMap
 	 */
 	private void getIdentityAttribute(JSONObject identity, String attribute,
-			Map<String, Map<String, String>> languageMap) {
+									  Map<String, Map<String, String>> languageMap) {
 		if (identity.get(attribute) == null) {
 			return;
 		}
@@ -765,13 +800,13 @@ public class CredentialProvider {
 
 	/**
 	 * get the identity attributes list based on requested data
-	 * 
+	 *
 	 * @param identity
 	 * @param attribute
 	 * @param languageMap
 	 */
 	private void getIdentityAttributeForList(JSONObject identity, String attribute,
-			Map<String, Map<String, String>> languageMap) {
+											 Map<String, Map<String, String>> languageMap) {
 		if (identity.get(attribute) == null) {
 			return;
 		}
@@ -794,7 +829,7 @@ public class CredentialProvider {
 
 	/**
 	 * format the date based on user requested data format
-	 * 
+	 *
 	 * @param object
 	 * @param format
 	 * @return
@@ -812,7 +847,7 @@ public class CredentialProvider {
 
 	/**
 	 * format the name attribute
-	 * 
+	 *
 	 * @param name
 	 * @return
 	 */
@@ -827,7 +862,7 @@ public class CredentialProvider {
 
 	/**
 	 * format the address attribute
-	 * 
+	 *
 	 * @param addressLines
 	 * @return
 	 */
@@ -843,7 +878,7 @@ public class CredentialProvider {
 
 	/**
 	 * masking the UIN,VID,Phone and email attribtute's
-	 * 
+	 *
 	 * @param maskData
 	 * @return
 	 */
